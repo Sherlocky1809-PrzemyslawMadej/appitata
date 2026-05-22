@@ -55,6 +55,7 @@ Full server-side rendering (`output: "server"` in astro.config.mjs). All pages a
 - **Astro components** for static content/layout; **React components** only when interactivity is needed.
 - **Tailwind class merging**: use the `cn()` helper from `@/lib/utils` (clsx + tailwind-merge) for conditional/merged class names. Do not concatenate class strings manually.
 - **shadcn/ui**: components live in `src/components/ui/`, "new-york" style variant. Install new ones with `npx shadcn@latest add [name]`.
+- **API input validation**: validate request payloads (form data, JSON bodies) in `src/pages/api/` routes with `zod` schemas — never trust raw `formData()` / `request.json()` values.
 - **Supabase migrations**: `supabase/migrations/` using naming format `YYYYMMDDHHmmss_short_description.sql`. Always enable RLS on new tables with granular per-operation, per-role policies.
 - **React**: no Next.js directives ("use client" etc.). Extract hooks to `src/hooks/` (the `hooks` alias in `components.json`).
 - **Services/helpers** go in `src/lib/` (or `src/lib/services/` for extracted business logic).
