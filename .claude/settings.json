@@ -1,0 +1,18 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "bash",
+            "command": "f=$(node -e 'let d=\"\";process.stdin.on(\"data\",c=>d+=c).on(\"end\",()=>{try{process.stdout.write(String(JSON.parse(d).tool_input.file_path||\"\"))}catch(e){}})'); [ -n \"$f\" ] && npx prettier --write --ignore-unknown \"$f\" >/dev/null 2>&1 || true",
+            "timeout": 30,
+            "statusMessage": "Formatting with Prettier"
+          }
+        ]
+      }
+    ]
+  }
+}
