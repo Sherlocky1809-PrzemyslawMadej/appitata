@@ -1,8 +1,8 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "10x-astro-starter",
+  "name": "appitata",
   "main": "@astrojs/cloudflare/entrypoints/server",
-  "compatibility_date": "2026-05-08",
+  "compatibility_date": "2026-05-23",
   "compatibility_flags": ["nodejs_compat"],
   "assets": {
     "binding": "ASSETS",
