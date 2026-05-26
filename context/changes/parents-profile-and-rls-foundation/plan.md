@@ -341,17 +341,17 @@ None for MVP. The trigger fires once per signup (latency dominated by Supabase a
 
 #### Automated
 
-- [x] 1.1 `npm run lint` passes
-- [x] 1.2 `npm run build` passes (proves `createServerClient<Database>` is well-typed)
-- [x] 1.3 `npx supabase db reset` applies the migration without error
-- [x] 1.4 `npm run db:types` regenerates `src/db/database.types.ts` idempotently
-- [x] 1.5 `npm run db:reset` is recognized by npm (resolves to the documented script)
+- [x] 1.1 `npm run lint` passes — 9fdf527
+- [x] 1.2 `npm run build` passes (proves `createServerClient<Database>` is well-typed) — 9fdf527
+- [x] 1.3 `npx supabase db reset` applies the migration without error — 9fdf527
+- [x] 1.4 `npm run db:types` regenerates `src/db/database.types.ts` idempotently — 9fdf527
+- [x] 1.5 `npm run db:reset` is recognized by npm (resolves to the documented script) — 9fdf527
 
 #### Manual
 
-- [x] 1.6 Signing up via `/auth/signup` creates exactly one `public.parents` row with matching id/email
-- [x] 1.7 Second signup with the same email is rejected at the auth layer
-- [x] 1.8 `select * from public.parents` as `authenticated` with no JWT returns zero rows
+- [x] 1.6 Signing up via `/auth/signup` creates exactly one `public.parents` row with matching id/email — 9fdf527
+- [x] 1.7 Second signup with the same email is rejected at the auth layer — 9fdf527
+- [x] 1.8 `select * from public.parents` as `authenticated` with no JWT returns zero rows — 9fdf527
 
 ### Phase 2: Verification fixture + agent docs
 
