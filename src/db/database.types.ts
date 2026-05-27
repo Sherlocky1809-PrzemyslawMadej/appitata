@@ -34,6 +34,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      friend_connections: {
+        Row: {
+          addressee_id: string
+          id: string
+          requested_at: string
+          requester_id: string
+          status: Database["public"]["Enums"]["friend_connection_status"]
+        }
+        Insert: {
+          addressee_id: string
+          id?: string
+          requested_at?: string
+          requester_id: string
+          status?: Database["public"]["Enums"]["friend_connection_status"]
+        }
+        Update: {
+          addressee_id?: string
+          id?: string
+          requested_at?: string
+          requester_id?: string
+          status?: Database["public"]["Enums"]["friend_connection_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "friend_connections_addressee_id_fkey"
+            columns: ["addressee_id"]
+            isOneToOne: false
+            referencedRelation: "parents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "friend_connections_requester_id_fkey"
+            columns: ["requester_id"]
+            isOneToOne: false
+            referencedRelation: "parents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       parents: {
         Row: {
           created_at: string
@@ -66,13 +105,27 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      find_parent_by_handle: {
+        Args: { handle: string }
+        Returns: {
+          display_name: string
+          id: string
+        }[]
+      }
       is_connected: {
         Args: { owner: string; viewer: string }
         Returns: boolean
       }
+      list_my_friends: {
+        Args: never
+        Returns: {
+          display_name: string
+          id: string
+        }[]
+      }
     }
     Enums: {
-      [_ in never]: never
+      friend_connection_status: "pending" | "accepted" | "declined"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -202,7 +255,9 @@ export const Constants = {
     Enums: {},
   },
   public: {
-    Enums: {},
+    Enums: {
+      friend_connection_status: ["pending", "accepted", "declined"],
+    },
   },
 } as const
 
