@@ -1,13 +1,42 @@
 ---
 change_id: parents-profile-and-rls-foundation
 title: Parents profile and rls foundation
-status: implementing
+status: implemented
 created: 2026-05-26
 updated: 2026-05-27
 archived_at: null
 ---
 
 ## Notes
+
+### Session 3 — Phase 2 closed, F-01 implemented (2026-05-27, commit 41ffbb4)
+
+Phase 2 verified end-to-end and committed as **41ffbb4**. F-01 status: **implemented**.
+
+**Verified in this session:**
+
+- **2.2** `npm run build` — passed (124.69s, `Complete!`)
+- **2.3** `npm run db:reset` — migration + seed applied cleanly from a fresh database
+- **2.4** `select count(*) from public.parents` — returned `2` (Alice + Bob) after reset
+- **2.5** Three SQL blocks from `supabase/tests/parents-rls.md` in Studio → returned 1, 1, 0 rows as designed (RLS isolates parents end-to-end)
+- **2.6** AGENTS.md diff confirmed clean by user: DB dev-loop bullets + Windows CRLF note in §Commands, RLS-template bullet in §Key conventions after the Supabase migrations bullet, §Current state acknowledges parents/is_connected exist.
+
+**Windows lint posture applied to 2.1:** `npm run lint` over the full tree still fails on pre-existing CRLF debt (`astro.config.mjs` and friends — every line flagged `Delete ␍` by `prettier/prettier`). Phase 2 touched only `.md` / `.sql` paths (zero ESLint-scope files), so the touched-set is trivially lint-clean. AGENTS.md now documents this for future agents.
+
+**Files landed in 41ffbb4:**
+
+- `supabase/seed.sql` (new) — two fixed-UUID parents via `auth.users` insert + trigger backfill
+- `supabase/tests/parents-rls.md` (new) — three copy-pasteable SQL blocks proving 1/1/0 RLS isolation
+- `AGENTS.md` (modified) — §Commands DB dev-loop + Windows CRLF note; §Key conventions RLS template; §Current state refreshed
+- `context/changes/parents-profile-and-rls-foundation/plan.md` (modified) — Phase 2 Progress rows flipped (SHA suffixes written back post-commit)
+
+**Carried-forward dirty paths (still untouched, same set as 9fdf527):**
+
+- `CLAUDE.md` (modified, Module 2 Lesson 2 toolkit update — separate commit)
+- `.claude/.10x-cli-manifest.json`, `.claude/settings.local.json`, `.claude/skills/` — local toolkit state
+- `supabase/snippets/` — Studio query history; gitignore-worthy
+
+**Next step:** F-01 is done. The change is ready for `/10x-archive parents-profile-and-rls-foundation` once you're happy with the final state.
 
 ### Session 2 — Phase 1 closed (2026-05-27, commit 9fdf527)
 

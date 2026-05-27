@@ -357,12 +357,12 @@ None for MVP. The trigger fires once per signup (latency dominated by Supabase a
 
 #### Automated
 
-- [x] 2.1 `npm run lint` passes
-- [x] 2.2 `npm run build` passes
-- [x] 2.3 `npm run db:reset` applies migration AND seed cleanly
-- [x] 2.4 `select count(*) from public.parents` returns 2 after `db:reset`
+- [x] 2.1 `npm run lint` passes — 41ffbb4
+- [x] 2.2 `npm run build` passes — 41ffbb4
+- [x] 2.3 `npm run db:reset` applies migration AND seed cleanly — 41ffbb4
+- [x] 2.4 `select count(*) from public.parents` returns 2 after `db:reset` — 41ffbb4
 
 #### Manual
 
-- [x] 2.5 The three SQL blocks from `supabase/tests/parents-rls.md` produce 1, 1, 0 rows respectively
-- [x] 2.6 AGENTS.md diff reads cleanly: §Commands names `db:reset`/`db:types`; §Key conventions has an RLS-template bullet; §Current state acknowledges parents exists
+- [x] 2.5 The three SQL blocks from `supabase/tests/parents-rls.md` produce 1, 1, 0 rows respectively — 41ffbb4
+- [x] 2.6 AGENTS.md diff reads cleanly: §Commands names `db:reset`/`db:types`; §Key conventions has an RLS-template bullet; §Current state acknowledges parents exists — 41ffbb4
