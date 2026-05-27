@@ -1,10 +1,10 @@
 ---
 change_id: parents-profile-and-rls-foundation
 title: Parents profile and rls foundation
-status: implemented
+status: archived
 created: 2026-05-26
 updated: 2026-05-27
-archived_at: null
+archived_at: 2026-05-27T08:54:11Z
 ---
 
 ## Notes

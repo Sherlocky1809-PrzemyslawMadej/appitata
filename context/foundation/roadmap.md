@@ -3,7 +3,7 @@ project: AppiTata
 version: 1
 status: draft
 created: 2026-05-25
-updated: 2026-05-25
+updated: 2026-05-27
 prd_version: 1
 main_goal: speed
 top_blocker: time
@@ -29,7 +29,7 @@ Parents already have friends they trust; what they lack is a low-effort way to c
 
 | ID   | Change ID                             | Outcome (user can …)                                                              | Prerequisites | PRD refs                                      | Status   |
 | ---- | ------------------------------------- | --------------------------------------------------------------------------------- | ------------- | --------------------------------------------- | -------- |
-| F-01 | parents-profile-and-rls-foundation    | (foundation) every domain table FKs to `parents`; RLS pattern enforces privacy    | —             | FR-001, NFR §Privacy boundary, Access Control | ready    |
+| F-01 | parents-profile-and-rls-foundation    | (foundation) every domain table FKs to `parents`; RLS pattern enforces privacy    | —             | FR-001, NFR §Privacy boundary, Access Control | done     |
 | S-01 | friend-connection-handshake           | search a parent by email/phone, request → accept/decline, see connected friends   | F-01          | US-02, FR-001, FR-002, FR-003, FR-004, FR-005 | proposed |
 | S-02 | meeting-creation-and-invite           | create a meeting (date, time, structured address, description) and invite friends | F-01, S-01    | US-01 (partial), FR-006, FR-007               | proposed |
 | S-03 | meeting-accept-with-conflict-and-list | accept/decline an invitation (with conflict warning) and see upcoming/past list   | F-01, S-02    | US-01 (completes), FR-008, FR-009, FR-010     | proposed |
@@ -59,7 +59,7 @@ What's already in place in the codebase as of 2026-05-25 (auto-researched + user
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** The only NFR (privacy boundary) is wholly carried by this foundation. Getting the RLS template wrong silently leaks private data — and it only becomes visible after two parents and one connection exist, which is not until S-01 ships. Verify the template with two seeded parents and one connection row before declaring F-01 done.
-- **Status:** ready
+- **Status:** done
 
 ## Slices
 
@@ -142,4 +142,4 @@ None — PRD §Open Questions is empty and no cross-cutting question was surface
 
 ## Done
 
-(None yet. `/10x-archive` appends entries here — and flips the matching item's `Status` to `done` in `## At a glance` and in its body block — when a change whose `Change ID` matches a roadmap item is archived. Do not pre-populate.)
+- **F-01: (foundation) every parent who signs up has a corresponding row in a domain `parents` table linked to `auth.users`; every later domain table FKs to `parents.id`; a reusable RLS policy template enforces the "visible only to me and to my connected friends" rule that every later table will inherit.** — Archived 2026-05-27 → `context/archive/2026-05-26-parents-profile-and-rls-foundation/`. Lesson: —.
