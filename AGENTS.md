@@ -20,18 +20,25 @@ Full spec: `context/foundation/prd.md`. The `context/` directory holds the proje
 
 Both must hold for every feature that touches parent data:
 
-1. **Privacy boundary** — a parent's meetings, friends list, and child details are visible *only* to explicitly connected friends; nothing is public or reachable across circles. Enforce in the database with Supabase RLS, not only in UI filtering.
+1. **Privacy boundary** — a parent's meetings, friends list, and child details are visible _only_ to explicitly connected friends; nothing is public or reachable across circles. Enforce in the database with Supabase RLS, not only in UI filtering.
 2. **No silent double-booking** — a time conflict is always surfaced before a meeting is confirmed; never hide or silently resolve a clash.
 
 ### Current state
 
-Only the auth scaffold from the 10x-astro-starter is built: email/password sign-in/up/out, protected-route middleware, and a placeholder `/dashboard`. The AppiTata domain — friends, meetings, invitations, conflict checking — does not exist yet, so expect to add Supabase tables, migrations, pages, and API routes.
+The auth scaffold from the 10x-astro-starter (email/password sign-in/up/out, protected-route middleware, placeholder `/dashboard`) is in place, and the data foundation has begun: `public.parents` (1:1 with `auth.users` via the `on_auth_user_created` trigger) plus the `public.is_connected(viewer, owner)` RLS template helper now exist. Friends, meetings, invitations, and conflict checking are still TBD — expect to add Supabase tables, migrations, pages, and API routes for those.
 
 ## Commands
 
 npm scripts live in `@package.json`. Two non-obvious details: `npm run dev` runs on the Cloudflare `workerd` runtime (not plain Node), and `npm run format` applies the `prettier-plugin-astro` and `prettier-plugin-tailwindcss` Prettier plugins.
 
+**DB dev loop** (requires Docker — `npx supabase start` brings up the local stack):
+
+- `npm run db:reset` — drops the local DB, replays every migration in `supabase/migrations/`, then applies `supabase/seed.sql`.
+- `npm run db:types` — regenerates `src/db/database.types.ts` from the running local schema. Re-run after every migration; do not hand-edit the file.
+
 Pre-commit hooks (husky + lint-staged) auto-run `eslint --fix` and `prettier --write` on staged files; config is in `@package.json`.
+
+**Windows / CRLF note.** The repo has `core.autocrlf=true` with no `.gitattributes`, so Windows checkouts pick up CRLF line endings while Prettier expects LF — `npm run lint` over the full tree fails on pre-existing files. On Windows, lint only the paths you touched (`npx eslint <files>`) or run `npm run lint:fix` to normalise before a full check.
 
 ## Architecture
 
@@ -57,6 +64,7 @@ Full server-side rendering (`output: "server"` in astro.config.mjs). All pages a
 - **shadcn/ui**: components live in `src/components/ui/`, "new-york" style variant. Install new ones with `npx shadcn@latest add [name]`.
 - **API input validation**: validate request payloads (form data, JSON bodies) in `src/pages/api/` routes with `zod` schemas — never trust raw `formData()` / `request.json()` values.
 - **Supabase migrations**: `supabase/migrations/` using naming format `YYYYMMDDHHmmss_short_description.sql`. Always enable RLS on new tables with granular per-operation, per-role policies.
+- **RLS template**: every domain table that holds parent-owned data writes its SELECT policy as `using ( public.is_connected(auth.uid(), <owner_column>) )`. `public.is_connected(viewer, owner)` is the SECURITY DEFINER helper (locked `search_path = public, pg_temp`) that centralises the "viewer is the owner, or is a connected friend" check — see the canonical example in `supabase/migrations/20260526120000_parents_foundation.sql`. Do not inline the connection logic per-table; extend `is_connected` instead.
 - **React**: no Next.js directives ("use client" etc.). Extract hooks to `src/hooks/` (the `hooks` alias in `components.json`).
 - **Services/helpers** go in `src/lib/` (or `src/lib/services/` for extracted business logic).
 - **Shared types** (entities, DTOs) go in `src/types.ts`.
