@@ -553,35 +553,35 @@ The three partial indexes (`friend_connections_addressee_pending_idx`, `friend_c
 
 #### Automated
 
-- [x] 1.1 `npm run lint` passes
-- [x] 1.2 `npm run build` passes
-- [x] 1.3 `npm run db:reset` applies migration AND seed cleanly
-- [x] 1.4 `npm run db:types` regenerates `src/db/database.types.ts` idempotently
-- [x] 1.5 `select count(*) from public.parents` returns 2 after `db:reset`
-- [x] 1.6 `select count(*) from public.friend_connections` returns 1 after `db:reset`
-- [x] 1.7 `select public.is_connected('00000000-0000-0000-0000-000000000a01'::uuid, '00000000-0000-0000-0000-000000000b01'::uuid)` returns true
+- [x] 1.1 `npm run lint` passes — 03ce3a9
+- [x] 1.2 `npm run build` passes — 03ce3a9
+- [x] 1.3 `npm run db:reset` applies migration AND seed cleanly — 03ce3a9
+- [x] 1.4 `npm run db:types` regenerates `src/db/database.types.ts` idempotently — 03ce3a9
+- [x] 1.5 `select count(*) from public.parents` returns 2 after `db:reset` — 03ce3a9
+- [x] 1.6 `select count(*) from public.friend_connections` returns 1 after `db:reset` — 03ce3a9
+- [x] 1.7 `select public.is_connected('00000000-0000-0000-0000-000000000a01'::uuid, '00000000-0000-0000-0000-000000000b01'::uuid)` returns true — 03ce3a9
 
 #### Manual
 
-- [x] 1.8 The three SQL blocks in updated `supabase/tests/parents-rls.md` produce the documented row counts (2, 2, 1)
-- [x] 1.9 The six SQL blocks in new `supabase/tests/friend-connections-rls.md` produce their documented results
-- [x] 1.10 `find_parent_by_handle` returns Bob for `'bob@example.com'`, zero rows for `'alice@example.com'` (self), one row for `'+48 222 222 222'` (phone normalisation)
+- [x] 1.8 The three SQL blocks in updated `supabase/tests/parents-rls.md` produce the documented row counts (2, 2, 1) — 03ce3a9
+- [x] 1.9 The six SQL blocks in new `supabase/tests/friend-connections-rls.md` produce their documented results — 03ce3a9
+- [x] 1.10 `find_parent_by_handle` returns Bob for `'bob@example.com'`, zero rows for `'alice@example.com'` (self), one row for `'+48 222 222 222'` (phone normalisation) — 03ce3a9
 
 ### Phase 2: Server-side wiring — signup extension and friend-handshake API
 
 #### Automated
 
-- [ ] 2.1 `npm run lint` passes
-- [ ] 2.2 `npm run build` passes
+- [x] 2.1 `npm run lint` passes
+- [x] 2.2 `npm run build` passes
 
 #### Manual
 
-- [ ] 2.3 Signing up with display_name + phone populates both columns on `parents`; signing up with display_name only leaves phone null
-- [ ] 2.4 Empty display_name submission shows the validation error and creates no row
-- [ ] 2.5 `POST /api/friends/search` returns the expected payloads for known handle, self, non-existent handle
-- [ ] 2.6 `POST /api/friends/request` returns 201 on first send, 409 on duplicate from same direction, 409 (with `"already connected"`) on reverse direction after accepted, 422 on self
-- [ ] 2.7 `POST /api/friends/respond` returns 200 + accepted on first accept; 404 on replay (RLS USING fails after status flips)
-- [ ] 2.8 `DELETE /api/friends/requests/[id]` returns 204 for the requester, 404 for a non-requester
+- [x] 2.3 Signing up with display_name + phone populates both columns on `parents`; signing up with display_name only leaves phone null
+- [x] 2.4 Empty display_name submission shows the validation error and creates no row
+- [x] 2.5 `POST /api/friends/search` returns the expected payloads for known handle, self, non-existent handle
+- [x] 2.6 `POST /api/friends/request` returns 201 on first send, 409 on duplicate from same direction, 409 (with `"already connected"`) on reverse direction after accepted, 422 on self
+- [x] 2.7 `POST /api/friends/respond` returns 200 + accepted on first accept; 404 on replay (RLS USING fails after status flips)
+- [x] 2.8 `DELETE /api/friends/requests/[id]` returns 204 for the requester, 404 for a non-requester
 
 ### Phase 3: UI + integration — /friends page, middleware, dashboard link
 
