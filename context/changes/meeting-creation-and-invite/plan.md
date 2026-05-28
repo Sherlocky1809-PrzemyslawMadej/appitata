@@ -597,21 +597,21 @@ The three partial indexes (`meeting_invitations_meeting_idx`, `meeting_invitatio
 
 #### Automated
 
-- [x] 1.1 `npm run lint` passes
-- [x] 1.2 `npm run build` passes
-- [x] 1.3 `npm run db:reset` applies the migration cleanly
-- [x] 1.4 `npm run db:types` regenerates `src/db/database.types.ts` idempotently
-- [x] 1.5 `select count(*) from public.meetings` returns 0 after `db:reset`
-- [x] 1.6 `select count(*) from public.meeting_invitations` returns 0 after `db:reset`
-- [x] 1.7 `select to_regtype('public.meeting_invitation_status')` returns the enum name
-- [x] 1.8 `select pg_get_function_arguments('public.create_meeting_with_invitations'::regproc)` returns the 8-arg signature
+- [x] 1.1 `npm run lint` passes — cc61bb2
+- [x] 1.2 `npm run build` passes — cc61bb2
+- [x] 1.3 `npm run db:reset` applies the migration cleanly — cc61bb2
+- [x] 1.4 `npm run db:types` regenerates `src/db/database.types.ts` idempotently — cc61bb2
+- [x] 1.5 `select count(*) from public.meetings` returns 0 after `db:reset` — cc61bb2
+- [x] 1.6 `select count(*) from public.meeting_invitations` returns 0 after `db:reset` — cc61bb2
+- [x] 1.7 `select to_regtype('public.meeting_invitation_status')` returns the enum name — cc61bb2
+- [x] 1.8 `select pg_get_function_arguments('public.create_meeting_with_invitations'::regproc)` returns the 8-arg signature — cc61bb2
 
 #### Manual
 
-- [x] 1.9 All eight SQL blocks in `supabase/tests/meetings-rls.md` produce their documented results
-- [x] 1.10 `\dp public.meetings` shows the expected ACL (insert, select, delete present; update absent)
-- [x] 1.11 `\dp public.meeting_invitations` shows the expected ACL (insert, select present; update, delete absent)
-- [x] 1.12 `\df+ public.create_meeting_with_invitations` shows `Security: definer`, `Config: search_path=public, pg_temp`, and ACL grant to authenticated
+- [x] 1.9 All eight SQL blocks in `supabase/tests/meetings-rls.md` produce their documented results — cc61bb2
+- [x] 1.10 `\dp public.meetings` shows the expected ACL (insert, select, delete present; update absent) — cc61bb2
+- [x] 1.11 `\dp public.meeting_invitations` shows the expected ACL (insert, select present; update, delete absent) — cc61bb2
+- [x] 1.12 `\df+ public.create_meeting_with_invitations` shows `Security: definer`, `Config: search_path=public, pg_temp`, and ACL grant to authenticated — cc61bb2
 
 ### Phase 2: Server-side wiring — meeting create + delete API
 

@@ -173,6 +173,14 @@ begin
     raise exception 'at least one invitee required' using errcode = '22023';
   end if;
 
+  -- Defense-in-depth cap (Phase 2 zod should mirror this). PRD's secondary
+  -- success target is ~3 connected friends; 50 is a generous ceiling that
+  -- still blocks pathological array sizes from running 10k is_connected
+  -- calls inside a single transaction.
+  if cardinality(p_invitee_ids) > 50 then
+    raise exception 'too many invitees (max 50)' using errcode = '22023';
+  end if;
+
   foreach v_invitee in array p_invitee_ids loop
     if not public.is_connected(auth.uid(), v_invitee) then
       raise exception 'invitee not connected' using errcode = '42501';

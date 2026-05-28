@@ -100,7 +100,7 @@ begin;
 rollback;
 ```
 
-A non-zero result from Dave's block means the `meetings_select` policy's EXISTS subquery is over-broad — likely the outer-table qualification (`mi.meeting_id = public.meetings.id`) was missed and the inner alias is shadowing.
+A non-zero result from Dave's block means the cross-table visibility helper is over-broad. The shipped policies route through `public.user_is_meeting_invitee(p_meeting_id, p_user_id)` (a SECURITY DEFINER helper) rather than an inline EXISTS — bare inline EXISTS would trip Postgres's infinite-recursion guard because `meetings_select` and `meeting_invitations_select` reference each other. If Dave returns 1, check that the helper's WHERE clause actually narrows on both `p_meeting_id` and `p_user_id` and isn't returning `true` for any (meeting, user) pair.
 
 ## 3. Cross-table SELECT visibility — invitation
 
