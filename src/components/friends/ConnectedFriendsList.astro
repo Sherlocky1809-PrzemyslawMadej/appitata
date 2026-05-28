@@ -1,0 +1,26 @@
+---
+interface Friend {
+  id: string;
+  display_name: string | null;
+}
+
+interface Props {
+  friends: Friend[];
+}
+
+const { friends } = Astro.props;
+---
+
+{
+  friends.length === 0 ? (
+    <p class="text-sm text-blue-100/60">No connected friends yet — use Search above to find someone.</p>
+  ) : (
+    <ul class="space-y-2">
+      {friends.map((f) => (
+        <li class="rounded-lg border border-white/15 bg-white/5 p-4">
+          <p class="font-medium text-white">{f.display_name ?? "Unnamed parent"}</p>
+        </li>
+      ))}
+    </ul>
+  )
+}

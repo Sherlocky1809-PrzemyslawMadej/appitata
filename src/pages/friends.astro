@@ -1,0 +1,92 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { createClient } from "@/lib/supabase";
+import FriendSearch from "@/components/friends/FriendSearch";
+import IncomingRequestsList from "@/components/friends/IncomingRequestsList";
+import OutgoingPendingList from "@/components/friends/OutgoingPendingList";
+import ConnectedFriendsList from "@/components/friends/ConnectedFriendsList.astro";
+import type { IncomingRequest } from "@/components/friends/IncomingRequestsList";
+import type { OutgoingRequest } from "@/components/friends/OutgoingPendingList";
+
+// Middleware guarantees `user` is non-null on this protected route — see src/middleware.ts.
+const user = Astro.locals.user;
+
+let incoming: IncomingRequest[] = [];
+let outgoing: OutgoingRequest[] = [];
+let friends: { id: string; display_name: string | null }[] = [];
+let loadError: string | null = null;
+
+const supabase = user ? createClient(Astro.request.headers, Astro.cookies) : null;
+
+if (!user) {
+  loadError = "Not signed in";
+} else if (!supabase) {
+  loadError = "Supabase is not configured";
+} else {
+  const [incomingRes, outgoingRes, friendsRes] = await Promise.all([
+    supabase
+      .from("friend_connections")
+      .select("id, requested_at, requester:parents!requester_id(id, display_name, email)")
+      .eq("addressee_id", user.id)
+      .eq("status", "pending")
+      .order("requested_at", { ascending: false }),
+    supabase
+      .from("friend_connections")
+      .select("id, requested_at, addressee:parents!addressee_id(id, display_name, email)")
+      .eq("requester_id", user.id)
+      .eq("status", "pending")
+      .order("requested_at", { ascending: false }),
+    supabase.rpc("list_my_friends"),
+  ]);
+
+  if (incomingRes.error) loadError = incomingRes.error.message;
+  else if (outgoingRes.error) loadError = outgoingRes.error.message;
+  else if (friendsRes.error) loadError = friendsRes.error.message;
+  else {
+    incoming = incomingRes.data;
+    outgoing = outgoingRes.data;
+    friends = friendsRes.data;
+  }
+}
+---
+
+<Layout title="Friends">
+  <div class="bg-cosmic min-h-screen p-4">
+    <div class="mx-auto max-w-3xl space-y-6 py-8">
+      <header class="flex items-center justify-between">
+        <h1 class="bg-gradient-to-r from-blue-200 to-purple-200 bg-clip-text text-3xl font-bold text-transparent">
+          Friends
+        </h1>
+        <a href="/dashboard" class="text-sm text-blue-100/80 hover:underline">← Dashboard</a>
+      </header>
+
+      {
+        loadError ? (
+          <div class="rounded-lg border border-red-400/40 bg-red-500/10 p-4 text-sm text-red-200">
+            Failed to load friends: {loadError}
+          </div>
+        ) : null
+      }
+
+      <section class="rounded-2xl border border-white/10 bg-white/10 p-6 text-white backdrop-blur-xl">
+        <h2 class="mb-4 text-lg font-semibold">Search</h2>
+        <FriendSearch client:load />
+      </section>
+
+      <section class="rounded-2xl border border-white/10 bg-white/10 p-6 text-white backdrop-blur-xl">
+        <h2 class="mb-4 text-lg font-semibold">Incoming requests</h2>
+        <IncomingRequestsList requests={incoming} client:visible />
+      </section>
+
+      <section class="rounded-2xl border border-white/10 bg-white/10 p-6 text-white backdrop-blur-xl">
+        <h2 class="mb-4 text-lg font-semibold">Outgoing pending</h2>
+        <OutgoingPendingList requests={outgoing} client:visible />
+      </section>
+
+      <section class="rounded-2xl border border-white/10 bg-white/10 p-6 text-white backdrop-blur-xl">
+        <h2 class="mb-4 text-lg font-semibold">Connected friends</h2>
+        <ConnectedFriendsList friends={friends} />
+      </section>
+    </div>
+  </div>
+</Layout>

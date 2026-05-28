@@ -571,32 +571,32 @@ The three partial indexes (`friend_connections_addressee_pending_idx`, `friend_c
 
 #### Automated
 
-- [x] 2.1 `npm run lint` passes
-- [x] 2.2 `npm run build` passes
+- [x] 2.1 `npm run lint` passes — 6ce3504
+- [x] 2.2 `npm run build` passes — 6ce3504
 
 #### Manual
 
-- [x] 2.3 Signing up with display_name + phone populates both columns on `parents`; signing up with display_name only leaves phone null
-- [x] 2.4 Empty display_name submission shows the validation error and creates no row
-- [x] 2.5 `POST /api/friends/search` returns the expected payloads for known handle, self, non-existent handle
-- [x] 2.6 `POST /api/friends/request` returns 201 on first send, 409 on duplicate from same direction, 409 (with `"already connected"`) on reverse direction after accepted, 422 on self
-- [x] 2.7 `POST /api/friends/respond` returns 200 + accepted on first accept; 404 on replay (RLS USING fails after status flips)
-- [x] 2.8 `DELETE /api/friends/requests/[id]` returns 204 for the requester, 404 for a non-requester
+- [x] 2.3 Signing up with display_name + phone populates both columns on `parents`; signing up with display_name only leaves phone null — 6ce3504
+- [x] 2.4 Empty display_name submission shows the validation error and creates no row — 6ce3504
+- [x] 2.5 `POST /api/friends/search` returns the expected payloads for known handle, self, non-existent handle — 6ce3504
+- [x] 2.6 `POST /api/friends/request` returns 201 on first send, 409 on duplicate from same direction, 409 (with `"already connected"`) on reverse direction after accepted, 422 on self — 6ce3504
+- [x] 2.7 `POST /api/friends/respond` returns 200 + accepted on first accept; 404 on replay (RLS USING fails after status flips) — 6ce3504
+- [x] 2.8 `DELETE /api/friends/requests/[id]` returns 204 for the requester, 404 for a non-requester — 6ce3504
 
 ### Phase 3: UI + integration — /friends page, middleware, dashboard link
 
 #### Automated
 
-- [ ] 3.1 `npm run lint` passes
-- [ ] 3.2 `npm run build` passes
-- [ ] 3.3 `/friends` is in `PROTECTED_ROUTES` in `src/middleware.ts`
+- [x] 3.1 `npm run lint` passes
+- [x] 3.2 `npm run build` passes
+- [x] 3.3 `/friends` is in `PROTECTED_ROUTES` in `src/middleware.ts`
 
 #### Manual
 
-- [ ] 3.4 `/friends` while signed out redirects to `/auth/signin`
-- [ ] 3.5 Signed-in `/friends` renders all four sections; Alice's Connected list shows Bob; Search returns Bob for his email and empty-state for self
-- [ ] 3.6 Full happy-path loop works: fresh signup → search → request → other user accepts → both see each other in Connected list
-- [ ] 3.7 Cancel from Outgoing pending removes the row; the addressee never sees it
-- [ ] 3.8 Decline removes the row from Incoming; the row persists in Studio; re-request from the same direction returns 409 (block-forever holds)
-- [ ] 3.9 `/dashboard` shows the "Friends" link, clicking it lands on `/friends`
-- [ ] 3.10 AGENTS.md diff reads cleanly: §Current state acknowledges `friend_connections` + extended `is_connected` + the two RPCs + parents_select pending-OR branch; §Key conventions has the Search/list-RPCs bullet and the Column-level GRANT bullet
+- [x] 3.4 `/friends` while signed out redirects to `/auth/signin`
+- [x] 3.5 Signed-in `/friends` renders all four sections; Alice's Connected list shows Bob; Search returns Bob for his email and empty-state for self
+- [x] 3.6 Full happy-path loop works: fresh signup → search → request → other user accepts → both see each other in Connected list
+- [x] 3.7 Cancel from Outgoing pending removes the row; the addressee never sees it
+- [x] 3.8 Decline removes the row from Incoming; the row persists in Studio; re-request from the same direction returns 409 (block-forever holds)
+- [x] 3.9 `/dashboard` shows the "Friends" link, clicking it lands on `/friends`
+- [x] 3.10 AGENTS.md diff reads cleanly: §Current state acknowledges `friend_connections` + extended `is_connected` + the two RPCs + parents_select pending-OR branch; §Key conventions has the Search/list-RPCs bullet and the Column-level GRANT bullet
