@@ -617,29 +617,29 @@ The three partial indexes (`meeting_invitations_meeting_idx`, `meeting_invitatio
 
 #### Automated
 
-- [x] 2.1 `npm run lint` passes
-- [x] 2.2 `npm run build` passes
+- [x] 2.1 `npm run lint` passes — 81df3f1
+- [x] 2.2 `npm run build` passes — 81df3f1
 
 #### Manual
 
-- [x] 2.3 `POST /api/meetings` with valid body (Bob as invitee, Alice as caller) returns 201 + meeting_id
-- [x] 2.4 `POST /api/meetings` with empty `invitee_ids` returns 400
-- [x] 2.5 `POST /api/meetings` with an unconnected invitee returns 403
-- [x] 2.6 `POST /api/meetings` with empty `description` returns 400
-- [x] 2.7 `POST /api/meetings` with non-ISO `starts_at` (no timezone) returns 400
-- [x] 2.8 `POST /api/meetings` with `duration_minutes = 0` or `> 1440` returns 400; omitted defaults to 60
-- [x] 2.9 `POST /api/meetings` with duplicate UUIDs in `invitee_ids` returns 422
-- [x] 2.10 `DELETE /api/meetings/[id]` as the creator returns 204; cascade removes invitations
-- [x] 2.11 `DELETE /api/meetings/[id]` as a non-creator returns 404
-- [x] 2.12 Unauthenticated POST/DELETE returns 401
+- [x] 2.3 `POST /api/meetings` with valid body (Bob as invitee, Alice as caller) returns 201 + meeting_id — 81df3f1
+- [x] 2.4 `POST /api/meetings` with empty `invitee_ids` returns 400 — 81df3f1
+- [x] 2.5 `POST /api/meetings` with an unconnected invitee returns 403 — 81df3f1
+- [x] 2.6 `POST /api/meetings` with empty `description` returns 400 — 81df3f1
+- [x] 2.7 `POST /api/meetings` with non-ISO `starts_at` (no timezone) returns 400 — 81df3f1
+- [x] 2.8 `POST /api/meetings` with `duration_minutes = 0` or `> 1440` returns 400; omitted defaults to 60 — 81df3f1
+- [x] 2.9 `POST /api/meetings` with duplicate UUIDs in `invitee_ids` returns 422 — 81df3f1
+- [x] 2.10 `DELETE /api/meetings/[id]` as the creator returns 204; cascade removes invitations — 81df3f1
+- [x] 2.11 `DELETE /api/meetings/[id]` as a non-creator returns 404 — 81df3f1
+- [x] 2.12 Unauthenticated POST/DELETE returns 401 — 81df3f1
 
 ### Phase 3: UI + integration — /meetings page, middleware, dashboard link, AGENTS.md refresh
 
 #### Automated
 
-- [ ] 3.1 `npm run lint` passes
-- [ ] 3.2 `npm run build` passes
-- [ ] 3.3 `/meetings` is in `PROTECTED_ROUTES` in `src/middleware.ts`
+- [x] 3.1 `npm run lint` passes
+- [x] 3.2 `npm run build` passes
+- [x] 3.3 `/meetings` is in `PROTECTED_ROUTES` in `src/middleware.ts`
 
 #### Manual
 

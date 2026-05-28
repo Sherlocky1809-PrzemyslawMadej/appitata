@@ -1,0 +1,71 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { createClient } from "@/lib/supabase";
+import MeetingCreateForm from "@/components/meetings/MeetingCreateForm";
+import MyMeetingsList from "@/components/meetings/MyMeetingsList";
+import type { MeetingWithInvitations } from "@/components/meetings/MyMeetingsList";
+
+// Middleware guarantees `user` is non-null on this protected route — see src/middleware.ts.
+const user = Astro.locals.user;
+
+let friends: { id: string; display_name: string | null }[] = [];
+let meetings: MeetingWithInvitations[] = [];
+let loadError: string | null = null;
+
+const supabase = user ? createClient(Astro.request.headers, Astro.cookies) : null;
+
+if (!user) {
+  loadError = "Not signed in";
+} else if (!supabase) {
+  loadError = "Supabase is not configured";
+} else {
+  const [friendsRes, meetingsRes] = await Promise.all([
+    supabase.rpc("list_my_friends"),
+    supabase
+      .from("meetings")
+      .select(
+        "id, starts_at, duration_minutes, street, city, postal_code, country, description, created_at, invitations:meeting_invitations(id, status, invited_at, invitee:parents!invitee_id(id, display_name))",
+      )
+      .eq("creator_id", user.id)
+      .order("starts_at", { ascending: true }),
+  ]);
+
+  if (friendsRes.error) loadError = friendsRes.error.message;
+  else if (meetingsRes.error) loadError = meetingsRes.error.message;
+  else {
+    friends = friendsRes.data;
+    meetings = meetingsRes.data;
+  }
+}
+---
+
+<Layout title="Meetings">
+  <div class="bg-cosmic min-h-screen p-4">
+    <div class="mx-auto max-w-3xl space-y-6 py-8">
+      <header class="flex items-center justify-between">
+        <h1 class="bg-gradient-to-r from-blue-200 to-purple-200 bg-clip-text text-3xl font-bold text-transparent">
+          Meetings
+        </h1>
+        <a href="/dashboard" class="text-sm text-blue-100/80 hover:underline">← Dashboard</a>
+      </header>
+
+      {
+        loadError ? (
+          <div class="rounded-lg border border-red-400/40 bg-red-500/10 p-4 text-sm text-red-200">
+            Failed to load meetings: {loadError}
+          </div>
+        ) : null
+      }
+
+      <section class="rounded-2xl border border-white/10 bg-white/10 p-6 text-white backdrop-blur-xl">
+        <h2 class="mb-4 text-lg font-semibold">Create new meeting</h2>
+        <MeetingCreateForm friends={friends} client:load />
+      </section>
+
+      <section class="rounded-2xl border border-white/10 bg-white/10 p-6 text-white backdrop-blur-xl">
+        <h2 class="mb-4 text-lg font-semibold">My created meetings</h2>
+        <MyMeetingsList meetings={meetings} client:visible />
+      </section>
+    </div>
+  </div>
+</Layout>
