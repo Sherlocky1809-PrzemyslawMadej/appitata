@@ -73,6 +73,92 @@ export type Database = {
           },
         ]
       }
+      meeting_invitations: {
+        Row: {
+          id: string
+          invited_at: string
+          invitee_id: string
+          meeting_id: string
+          status: Database["public"]["Enums"]["meeting_invitation_status"]
+        }
+        Insert: {
+          id?: string
+          invited_at?: string
+          invitee_id: string
+          meeting_id: string
+          status?: Database["public"]["Enums"]["meeting_invitation_status"]
+        }
+        Update: {
+          id?: string
+          invited_at?: string
+          invitee_id?: string
+          meeting_id?: string
+          status?: Database["public"]["Enums"]["meeting_invitation_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_invitations_invitee_id_fkey"
+            columns: ["invitee_id"]
+            isOneToOne: false
+            referencedRelation: "parents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meeting_invitations_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meetings: {
+        Row: {
+          city: string
+          country: string
+          created_at: string
+          creator_id: string
+          description: string
+          duration_minutes: number
+          id: string
+          postal_code: string
+          starts_at: string
+          street: string
+        }
+        Insert: {
+          city: string
+          country: string
+          created_at?: string
+          creator_id: string
+          description: string
+          duration_minutes?: number
+          id?: string
+          postal_code: string
+          starts_at: string
+          street: string
+        }
+        Update: {
+          city?: string
+          country?: string
+          created_at?: string
+          creator_id?: string
+          description?: string
+          duration_minutes?: number
+          id?: string
+          postal_code?: string
+          starts_at?: string
+          street?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meetings_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "parents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       parents: {
         Row: {
           created_at: string
@@ -105,6 +191,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_meeting_with_invitations: {
+        Args: {
+          p_city: string
+          p_country: string
+          p_description: string
+          p_duration_minutes: number
+          p_invitee_ids: string[]
+          p_postal_code: string
+          p_starts_at: string
+          p_street: string
+        }
+        Returns: string
+      }
       find_parent_by_handle: {
         Args: { handle: string }
         Returns: {
@@ -123,9 +222,18 @@ export type Database = {
           id: string
         }[]
       }
+      user_is_meeting_creator: {
+        Args: { p_meeting_id: string; p_user_id: string }
+        Returns: boolean
+      }
+      user_is_meeting_invitee: {
+        Args: { p_meeting_id: string; p_user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       friend_connection_status: "pending" | "accepted" | "declined"
+      meeting_invitation_status: "pending" | "accepted" | "declined" | "expired"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -257,6 +365,7 @@ export const Constants = {
   public: {
     Enums: {
       friend_connection_status: ["pending", "accepted", "declined"],
+      meeting_invitation_status: ["pending", "accepted", "declined", "expired"],
     },
   },
 } as const
