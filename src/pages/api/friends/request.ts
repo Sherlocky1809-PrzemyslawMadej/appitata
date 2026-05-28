@@ -50,6 +50,11 @@ export const POST: APIRoute = async (context) => {
   // case the UNIQUE (requester_id, addressee_id) constraint cannot, because the
   // accepted row already exists with (other, self) and the new INSERT would be
   // (self, other) — a different pair.
+  //
+  // TOCTOU race tolerated: two concurrent reverse-direction requests can both pass
+  // this check and both INSERT, producing two dangling pending rows (both legal
+  // under UNIQUE since direction differs). Worst case is UI weirdness at low qps,
+  // not data corruption. Revisit if it ever surfaces.
   const { data: connected, error: connectedError } = await supabase.rpc("is_connected", {
     viewer: user.id,
     owner: addressee_id,
@@ -71,6 +76,7 @@ export const POST: APIRoute = async (context) => {
   if (error) {
     if (error.code === "23505") return json({ error: "already requested" }, 409);
     if (error.code === "23514") return json({ error: "cannot request self" }, 422);
+    if (error.code === "23503") return json({ error: "not found" }, 404);
     return json({ error: error.message }, 500);
   }
 
