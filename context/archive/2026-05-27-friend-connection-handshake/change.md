@@ -1,10 +1,10 @@
 ---
 change_id: friend-connection-handshake
 title: Friend connection handshake
-status: impl_reviewed
+status: archived
 created: 2026-05-27
 updated: 2026-05-28
-archived_at: null
+archived_at: 2026-05-28T08:12:12Z
 ---
 
 ## Notes
