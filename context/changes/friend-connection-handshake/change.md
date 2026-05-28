@@ -1,9 +1,9 @@
 ---
 change_id: friend-connection-handshake
 title: Friend connection handshake
-status: implementing
+status: implemented
 created: 2026-05-27
-updated: 2026-05-27
+updated: 2026-05-28
 archived_at: null
 ---
 

@@ -587,16 +587,16 @@ The three partial indexes (`friend_connections_addressee_pending_idx`, `friend_c
 
 #### Automated
 
-- [x] 3.1 `npm run lint` passes
-- [x] 3.2 `npm run build` passes
-- [x] 3.3 `/friends` is in `PROTECTED_ROUTES` in `src/middleware.ts`
+- [x] 3.1 `npm run lint` passes — 0f42dff
+- [x] 3.2 `npm run build` passes — 0f42dff
+- [x] 3.3 `/friends` is in `PROTECTED_ROUTES` in `src/middleware.ts` — 0f42dff
 
 #### Manual
 
-- [x] 3.4 `/friends` while signed out redirects to `/auth/signin`
-- [x] 3.5 Signed-in `/friends` renders all four sections; Alice's Connected list shows Bob; Search returns Bob for his email and empty-state for self
-- [x] 3.6 Full happy-path loop works: fresh signup → search → request → other user accepts → both see each other in Connected list
-- [x] 3.7 Cancel from Outgoing pending removes the row; the addressee never sees it
-- [x] 3.8 Decline removes the row from Incoming; the row persists in Studio; re-request from the same direction returns 409 (block-forever holds)
-- [x] 3.9 `/dashboard` shows the "Friends" link, clicking it lands on `/friends`
-- [x] 3.10 AGENTS.md diff reads cleanly: §Current state acknowledges `friend_connections` + extended `is_connected` + the two RPCs + parents_select pending-OR branch; §Key conventions has the Search/list-RPCs bullet and the Column-level GRANT bullet
+- [x] 3.4 `/friends` while signed out redirects to `/auth/signin` — 0f42dff
+- [x] 3.5 Signed-in `/friends` renders all four sections; Alice's Connected list shows Bob; Search returns Bob for his email and empty-state for self — 0f42dff
+- [x] 3.6 Full happy-path loop works: fresh signup → search → request → other user accepts → both see each other in Connected list — 0f42dff
+- [x] 3.7 Cancel from Outgoing pending removes the row; the addressee never sees it — 0f42dff
+- [x] 3.8 Decline removes the row from Incoming; the row persists in Studio; re-request from the same direction returns 409 (block-forever holds) — 0f42dff
+- [x] 3.9 `/dashboard` shows the "Friends" link, clicking it lands on `/friends` — 0f42dff
+- [x] 3.10 AGENTS.md diff reads cleanly: §Current state acknowledges `friend_connections` + extended `is_connected` + the two RPCs + parents_select pending-OR branch; §Key conventions has the Search/list-RPCs bullet and the Column-level GRANT bullet — 0f42dff
