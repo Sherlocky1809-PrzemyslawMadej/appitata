@@ -637,9 +637,9 @@ The three partial indexes (`meeting_invitations_meeting_idx`, `meeting_invitatio
 
 #### Automated
 
-- [x] 3.1 `npm run lint` passes
-- [x] 3.2 `npm run build` passes
-- [x] 3.3 `/meetings` is in `PROTECTED_ROUTES` in `src/middleware.ts`
+- [x] 3.1 `npm run lint` passes — cec47b6
+- [x] 3.2 `npm run build` passes — cec47b6
+- [x] 3.3 `/meetings` is in `PROTECTED_ROUTES` in `src/middleware.ts` — cec47b6
 
 #### Manual
 
