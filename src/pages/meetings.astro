@@ -3,16 +3,24 @@ import Layout from "@/layouts/Layout.astro";
 import { createClient } from "@/lib/supabase";
 import MeetingCreateForm from "@/components/meetings/MeetingCreateForm";
 import MyMeetingsList from "@/components/meetings/MyMeetingsList";
-import type { MeetingWithInvitations } from "@/components/meetings/MyMeetingsList";
+import type { ClashingMeetingSummary, MeetingRow, PendingInvitation } from "@/components/meetings/types";
 
 // Middleware guarantees `user` is non-null on this protected route — see src/middleware.ts.
 const user = Astro.locals.user;
 
 let friends: { id: string; display_name: string | null }[] = [];
-let meetings: MeetingWithInvitations[] = [];
+let meetings: MeetingRow[] = [];
+let pendingInvitations: PendingInvitation[] = [];
+let upcoming: MeetingRow[] = [];
+let past: MeetingRow[] = [];
+let conflictsByInvitationId: Record<string, ClashingMeetingSummary[]> = {};
 let loadError: string | null = null;
 
 const supabase = user ? createClient(Astro.request.headers, Astro.cookies) : null;
+
+function endsAt(m: { starts_at: string; duration_minutes: number }): number {
+  return new Date(m.starts_at).getTime() + m.duration_minutes * 60_000;
+}
 
 if (!user) {
   loadError = "Not signed in";
@@ -24,9 +32,8 @@ if (!user) {
     supabase
       .from("meetings")
       .select(
-        "id, starts_at, duration_minutes, street, city, postal_code, country, description, created_at, invitations:meeting_invitations(id, status, invited_at, invitee:parents!invitee_id(id, display_name))",
+        "id, starts_at, duration_minutes, street, city, postal_code, country, description, created_at, creator:parents!creator_id(id, display_name), invitations:meeting_invitations(id, status, invited_at, responded_at, invitee:parents!invitee_id(id, display_name))",
       )
-      .eq("creator_id", user.id)
       .order("starts_at", { ascending: true }),
   ]);
 
@@ -35,8 +42,49 @@ if (!user) {
   else {
     friends = friendsRes.data;
     meetings = meetingsRes.data;
+
+    const viewerId = user.id;
+    const now = Date.now();
+
+    pendingInvitations = meetings.flatMap((m) => {
+      const inv = m.invitations.find((i) => i.invitee?.id === viewerId && i.status === "pending");
+      return inv ? [{ invitation_id: inv.id, meeting: m }] : [];
+    });
+
+    const myScheduleForConflicts = meetings.filter(
+      (m) =>
+        m.creator?.id === viewerId || m.invitations.some((i) => i.invitee?.id === viewerId && i.status === "accepted"),
+    );
+
+    upcoming = myScheduleForConflicts.filter((m) => endsAt(m) >= now);
+    past = myScheduleForConflicts
+      .filter((m) => endsAt(m) < now)
+      .slice()
+      .sort((a, b) => new Date(b.starts_at).getTime() - new Date(a.starts_at).getTime());
+
+    conflictsByInvitationId = Object.fromEntries(
+      pendingInvitations.map((pi) => {
+        const piStart = new Date(pi.meeting.starts_at).getTime();
+        const piEnd = endsAt(pi.meeting);
+        const clashes: ClashingMeetingSummary[] = myScheduleForConflicts
+          .filter((m) => m.id !== pi.meeting.id)
+          .filter((m) => {
+            const mStart = new Date(m.starts_at).getTime();
+            const mEnd = endsAt(m);
+            return mStart < piEnd && mEnd > piStart;
+          })
+          .map((m) => ({ id: m.id, starts_at: m.starts_at, duration_minutes: m.duration_minutes }));
+        return [pi.invitation_id, clashes];
+      }),
+    );
   }
 }
+
+const creatorOwnedMeetings = meetings.filter((m) => m.creator?.id === user?.id);
+const pendingCount = pendingInvitations.length;
+const upcomingCount = upcoming.length;
+const pastCount = past.length;
+const conflictKeys = Object.keys(conflictsByInvitationId);
 ---
 
 <Layout title="Meetings">
@@ -64,7 +112,10 @@ if (!user) {
 
       <section class="rounded-2xl border border-white/10 bg-white/10 p-6 text-white backdrop-blur-xl">
         <h2 class="mb-4 text-lg font-semibold">My created meetings</h2>
-        <MyMeetingsList meetings={meetings} client:visible />
+        <p class="mb-3 text-xs text-blue-100/50" data-testid="ssr-debug-counts">
+          pending: {pendingCount} · upcoming: {upcomingCount} · past: {pastCount} · conflict-keys: {conflictKeys.length}
+        </p>
+        <MyMeetingsList meetings={creatorOwnedMeetings} client:visible />
       </section>
     </div>
   </div>

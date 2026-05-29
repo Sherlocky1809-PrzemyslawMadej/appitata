@@ -465,32 +465,32 @@ Add Playwright as a dev dependency, scaffold a small E2E harness that boots the 
 
 #### Automated
 
-- [x] 1.1 Migration applies cleanly on a fresh DB: `npm run db:reset` returns 0 with no error output
-- [x] 1.2 DB types regenerate without errors: `npm run db:types` succeeds; the resulting file contains `responded_at` in `meeting_invitations`
-- [x] 1.3 Type-check still passes after types regen: `npm run astro check`
+- [x] 1.1 Migration applies cleanly on a fresh DB: `npm run db:reset` returns 0 with no error output — 4907439
+- [x] 1.2 DB types regenerate without errors: `npm run db:types` succeeds; the resulting file contains `responded_at` in `meeting_invitations` — 4907439
+- [x] 1.3 Type-check still passes after types regen: `npm run astro check` — 4907439
 
 #### Manual
 
-- [x] 1.4 All five new blocks in `supabase/tests/meetings-rls.md` produce the documented `expect:` outputs when run in Supabase Studio against a freshly reset local DB
-- [x] 1.5 `\dp meeting_invitations` shows the expected table-level + column-level grants (no broad UPDATE; `status` + `responded_at` writeable to authenticated)
+- [x] 1.4 All five new blocks in `supabase/tests/meetings-rls.md` produce the documented `expect:` outputs when run in Supabase Studio against a freshly reset local DB — 4907439
+- [x] 1.5 `\dp meeting_invitations` shows the expected table-level + column-level grants (no broad UPDATE; `status` + `responded_at` writeable to authenticated) — 4907439
 
 ### Phase 2: Server-side wiring
 
 #### Automated
 
-- [ ] 2.1 Type-check passes: `npm run astro check` returns 0 with the new SSR shape + the new endpoint
-- [ ] 2.2 Lint passes on touched files: `npx eslint src/pages/api/meetings/invitations/respond.ts src/pages/meetings.astro src/components/meetings/types.ts` (Windows-CRLF posture — touched paths only)
-- [ ] 2.3 Build passes: `npm run build`
+- [x] 2.1 Type-check passes: `npm run astro check` returns 0 with the new SSR shape + the new endpoint
+- [x] 2.2 Lint passes on touched files: `npx eslint src/pages/api/meetings/invitations/respond.ts src/pages/meetings.astro src/components/meetings/types.ts` (Windows-CRLF posture — touched paths only)
+- [x] 2.3 Build passes: `npm run build`
 
 #### Manual
 
-- [ ] 2.4 Curl/REST probe: signed-in as Bob, POST `/api/meetings/invitations/respond` with a valid `{ invitation_id, action: "accept" }` returns 200 with `{ id, status: "accepted", responded_at: <ISO> }` and the DB row reflects the change
-- [ ] 2.5 Signed-in as Bob, POST with action `"decline"` on a different pending invitation returns 200 with `status: "declined"`
-- [ ] 2.6 Signed-in as Bob, POST with an `invitation_id` Bob never received → 404 "not found"
-- [ ] 2.7 Signed-in as Bob, POST with an already-accepted `invitation_id` → 404 "not found" (one-shot enforced)
-- [ ] 2.8 Signed-in as Bob, POST with `action: "expired"` → 400 (zod enum rejects)
-- [ ] 2.9 Unauthenticated POST → 401 "unauthorized"
-- [ ] 2.10 Opening `/meetings` after a few accepts/declines: the SSR data shape is correct (pending count, upcoming count, past count match the DB expectations; `conflictsByInvitationId` keys match the pending IDs)
+- [x] 2.4 Curl/REST probe: signed-in as Bob, POST `/api/meetings/invitations/respond` with a valid `{ invitation_id, action: "accept" }` returns 200 with `{ id, status: "accepted", responded_at: <ISO> }` and the DB row reflects the change
+- [x] 2.5 Signed-in as Bob, POST with action `"decline"` on a different pending invitation returns 200 with `status: "declined"`
+- [x] 2.6 Signed-in as Bob, POST with an `invitation_id` Bob never received → 404 "not found"
+- [x] 2.7 Signed-in as Bob, POST with an already-accepted `invitation_id` → 404 "not found" (one-shot enforced)
+- [x] 2.8 Signed-in as Bob, POST with `action: "expired"` → 400 (zod enum rejects)
+- [x] 2.9 Unauthenticated POST → 401 "unauthorized"
+- [x] 2.10 Opening `/meetings` after a few accepts/declines: the SSR data shape is correct (pending count, upcoming count, past count match the DB expectations; `conflictsByInvitationId` keys match the pending IDs)
 
 ### Phase 3: UI + integration
 
