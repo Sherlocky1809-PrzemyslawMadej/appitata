@@ -321,3 +321,151 @@ rollback;
 ```
 
 A successful UPDATE here means the REVOKE was missed and Supabase's default broad UPDATE grant is still in effect — stop and re-check the migration's grant section before shipping the API.
+
+## 9. Invitee can accept a pending invitation (S-03 happy path)
+
+Bob is invited to one of Alice's meetings. With S-03's `meeting_invitations_update` policy plus the `(status, responded_at)` column-level GRANT, Bob can flip the invitation from `pending` to `accepted` and the server-side `responded_at` stamp lands in the same UPDATE.
+
+```sql
+begin;
+  insert into public.meetings (id, creator_id, starts_at, street, city, postal_code, country, description)
+  values ('00000000-0000-0000-0000-000000000444',
+          '00000000-0000-0000-0000-000000000a01',
+          '2026-06-15 14:00+00',
+          'Test St 1', 'Warsaw', '00-001', 'PL',
+          'co-care Saturday');
+  insert into public.meeting_invitations (id, meeting_id, invitee_id)
+  values ('00000000-0000-0000-0000-000000000901',
+          '00000000-0000-0000-0000-000000000444',
+          '00000000-0000-0000-0000-000000000b01');
+
+  set local role authenticated;
+  set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-000000000b01"}';
+  update public.meeting_invitations
+     set status = 'accepted', responded_at = now()
+   where id = '00000000-0000-0000-0000-000000000901';
+  -- expect: UPDATE 1
+
+  -- Verify the row reflects the transition and responded_at is non-null
+  select status::text, responded_at is not null as has_stamp
+    from public.meeting_invitations
+    where id = '00000000-0000-0000-0000-000000000901';
+  -- expect: status='accepted', has_stamp=t
+rollback;
+```
+
+## 10. Non-invitee cannot accept someone else's invitation
+
+Dave (no relation to Alice or Bob) attempts to flip Bob's pending invitation. USING `auth.uid() = invitee_id` filters the row out; the UPDATE matches 0 rows.
+
+```sql
+begin;
+  insert into public.meetings (id, creator_id, starts_at, street, city, postal_code, country, description)
+  values ('00000000-0000-0000-0000-000000000444',
+          '00000000-0000-0000-0000-000000000a01',
+          '2026-06-15 14:00+00',
+          'Test St 1', 'Warsaw', '00-001', 'PL',
+          'co-care Saturday');
+  insert into public.meeting_invitations (id, meeting_id, invitee_id)
+  values ('00000000-0000-0000-0000-000000000901',
+          '00000000-0000-0000-0000-000000000444',
+          '00000000-0000-0000-0000-000000000b01');
+
+  set local role authenticated;
+  set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-000000000d01"}';
+  update public.meeting_invitations
+     set status = 'accepted', responded_at = now()
+   where id = '00000000-0000-0000-0000-000000000901';
+  -- expect: UPDATE 0
+rollback;
+```
+
+A non-zero result here means USING is missing the `auth.uid() = invitee_id` clause — stop and re-check.
+
+## 11. One-shot enforcement: cannot flip an already-accepted row
+
+Bob already accepted his invitation. He then attempts to flip it to `declined`. USING `status = 'pending'` filters the now-`accepted` row out; the UPDATE matches 0 rows. The API maps this to 404 via `.maybeSingle()`.
+
+```sql
+begin;
+  insert into public.meetings (id, creator_id, starts_at, street, city, postal_code, country, description)
+  values ('00000000-0000-0000-0000-000000000444',
+          '00000000-0000-0000-0000-000000000a01',
+          '2026-06-15 14:00+00',
+          'Test St 1', 'Warsaw', '00-001', 'PL',
+          'co-care Saturday');
+  insert into public.meeting_invitations (id, meeting_id, invitee_id, status, responded_at)
+  values ('00000000-0000-0000-0000-000000000901',
+          '00000000-0000-0000-0000-000000000444',
+          '00000000-0000-0000-0000-000000000b01',
+          'accepted',
+          now());
+
+  set local role authenticated;
+  set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-000000000b01"}';
+  update public.meeting_invitations
+     set status = 'declined', responded_at = now()
+   where id = '00000000-0000-0000-0000-000000000901';
+  -- expect: UPDATE 0
+rollback;
+```
+
+A non-zero result here means USING is missing the `status = 'pending'` clause — the one-shot rule has been broken. Stop and re-check.
+
+## 12. WITH CHECK rejects the 'expired' target status
+
+Bob attempts to flip his pending invitation to `expired` (a status reserved for S-04's cron writer, which bypasses RLS). The WITH CHECK clause rejects the write at policy-evaluation time.
+
+```sql
+begin;
+  insert into public.meetings (id, creator_id, starts_at, street, city, postal_code, country, description)
+  values ('00000000-0000-0000-0000-000000000444',
+          '00000000-0000-0000-0000-000000000a01',
+          '2026-06-15 14:00+00',
+          'Test St 1', 'Warsaw', '00-001', 'PL',
+          'co-care Saturday');
+  insert into public.meeting_invitations (id, meeting_id, invitee_id)
+  values ('00000000-0000-0000-0000-000000000901',
+          '00000000-0000-0000-0000-000000000444',
+          '00000000-0000-0000-0000-000000000b01');
+
+  set local role authenticated;
+  set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-000000000b01"}';
+  -- This must FAIL with: ERROR: new row violates row-level security policy for table "meeting_invitations"
+  update public.meeting_invitations
+     set status = 'expired', responded_at = now()
+   where id = '00000000-0000-0000-0000-000000000901';
+rollback;
+```
+
+A successful UPDATE here means WITH CHECK is missing the `status in ('accepted', 'declined')` clause — clients could now write any enum value. Stop and re-check.
+
+## 13. Column-level GRANT blocks writes to non-granted columns
+
+Bob attempts to UPDATE `invited_at` (not in the column-level GRANT). The GRANT layer rejects the write before RLS evaluates.
+
+> **Why "permission denied for table" rather than "for column".** Same as blocks 8 and the friend_connections column-grant note: Postgres reports the missing privilege at the table level (with a `HINT:` suggesting the privilege), not as a column-level error. The semantics are clear — `authenticated` holds no UPDATE privilege on `invited_at`, only on `(status, responded_at)`.
+
+```sql
+begin;
+  insert into public.meetings (id, creator_id, starts_at, street, city, postal_code, country, description)
+  values ('00000000-0000-0000-0000-000000000444',
+          '00000000-0000-0000-0000-000000000a01',
+          '2026-06-15 14:00+00',
+          'Test St 1', 'Warsaw', '00-001', 'PL',
+          'co-care Saturday');
+  insert into public.meeting_invitations (id, meeting_id, invitee_id)
+  values ('00000000-0000-0000-0000-000000000901',
+          '00000000-0000-0000-0000-000000000444',
+          '00000000-0000-0000-0000-000000000b01');
+
+  set local role authenticated;
+  set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-000000000b01"}';
+  -- This must FAIL with: ERROR: permission denied for table meeting_invitations
+  update public.meeting_invitations
+     set invited_at = now()
+   where id = '00000000-0000-0000-0000-000000000901';
+rollback;
+```
+
+A successful UPDATE here means the column-level GRANT was overshot (e.g. `grant update on … to authenticated` instead of the partial `(status, responded_at)`). Stop and re-check the migration's grant section.

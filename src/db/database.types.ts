@@ -79,6 +79,7 @@ export type Database = {
           invited_at: string
           invitee_id: string
           meeting_id: string
+          responded_at: string | null
           status: Database["public"]["Enums"]["meeting_invitation_status"]
         }
         Insert: {
@@ -86,6 +87,7 @@ export type Database = {
           invited_at?: string
           invitee_id: string
           meeting_id: string
+          responded_at?: string | null
           status?: Database["public"]["Enums"]["meeting_invitation_status"]
         }
         Update: {
@@ -93,6 +95,7 @@ export type Database = {
           invited_at?: string
           invitee_id?: string
           meeting_id?: string
+          responded_at?: string | null
           status?: Database["public"]["Enums"]["meeting_invitation_status"]
         }
         Relationships: [
