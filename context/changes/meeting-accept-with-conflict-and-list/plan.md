@@ -496,19 +496,19 @@ Add Playwright as a dev dependency, scaffold a small E2E harness that boots the 
 
 #### Automated
 
-- [ ] 3.1 Type-check passes: `npm run astro check` returns 0 across the new component, the renamed list, and the updated page
-- [ ] 3.2 Lint passes on touched files: `npx eslint src/components/meetings/PendingInvitationsList.tsx src/components/meetings/MeetingsList.tsx src/pages/meetings.astro`
-- [ ] 3.3 Build passes: `npm run build`
+- [x] 3.1 Type-check passes: `npm run astro check` returns 0 across the new component, the renamed list, and the updated page
+- [x] 3.2 Lint passes on touched files: `npx eslint src/components/meetings/PendingInvitationsList.tsx src/components/meetings/MeetingsList.tsx src/pages/meetings.astro`
+- [x] 3.3 Build passes: `npm run build`
 
 #### Manual
 
-- [ ] 3.4 As Alice: `/meetings` renders Create form + empty Pending + (after creating one) Upcoming with creator-branch rendering
-- [ ] 3.5 As Bob: pending invitation shows; clicking Accept moves it to Upcoming with invitee-branch rendering ("Created by Alice", no Delete)
-- [ ] 3.6 As Alice: create a second meeting for the same time inviting Bob. As Bob: pending shows inline yellow conflict warning naming the already-accepted meeting. Decline. Verify it does not move to Upcoming.
-- [ ] 3.7 As Alice (creator): Upcoming shows per-invitee status reflecting Bob's accept on first meeting and decline on second
-- [ ] 3.8 A past-dated meeting renders in the Past section in descending order
-- [ ] 3.9 Stale-page 404: Bob attempts to respond after Alice deleted the meeting → error banner shows "not found"
-- [ ] 3.10 AGENTS.md §Current state reads coherently with S-03 reflected; the "accept/decline … ships in S-03" line is removed
+- [x] 3.4 As Alice: `/meetings` renders Create form + empty Pending + (after creating one) Upcoming with creator-branch rendering
+- [x] 3.5 As Bob: pending invitation shows; clicking Accept moves it to Upcoming with invitee-branch rendering ("Created by Alice", no Delete)
+- [x] 3.6 As Alice: create a second meeting for the same time inviting Bob. As Bob: pending shows inline yellow conflict warning naming the already-accepted meeting. Decline. Verify it does not move to Upcoming.
+- [x] 3.7 As Alice (creator): Upcoming shows per-invitee status reflecting Bob's accept on first meeting and decline on second
+- [x] 3.8 A past-dated meeting renders in the Past section in descending order
+- [x] 3.9 Stale-page 404: Bob attempts to respond after Alice deleted the meeting → error banner shows "not found"
+- [x] 3.10 AGENTS.md §Current state reads coherently with S-03 reflected; the "accept/decline … ships in S-03" line is removed
 
 ### Phase 4: E2E coverage with Playwright
 

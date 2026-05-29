@@ -1,29 +1,12 @@
 import { useState } from "react";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-type InvitationStatus = "pending" | "accepted" | "declined" | "expired";
-
-export interface MeetingWithInvitations {
-  id: string;
-  starts_at: string;
-  duration_minutes: number;
-  street: string;
-  city: string;
-  postal_code: string;
-  country: string;
-  description: string;
-  created_at: string;
-  invitations: {
-    id: string;
-    status: InvitationStatus;
-    invited_at: string;
-    invitee: { id: string; display_name: string | null } | null;
-  }[];
-}
+import type { InvitationStatus, MeetingRow } from "./types";
 
 interface Props {
-  meetings: MeetingWithInvitations[];
+  meetings: MeetingRow[];
+  viewerId: string;
+  emptyMessage?: string;
 }
 
 function formatStartsAt(iso: string): string {
@@ -32,7 +15,7 @@ function formatStartsAt(iso: string): string {
   return d.toLocaleString();
 }
 
-function formatAddress(m: MeetingWithInvitations): string {
+function formatAddress(m: MeetingRow): string {
   return `${m.street}, ${m.city} ${m.postal_code}, ${m.country}`;
 }
 
@@ -43,7 +26,7 @@ const badgeClass: Record<InvitationStatus, string> = {
   expired: "bg-zinc-500/20 text-zinc-300 border-zinc-400/40",
 };
 
-export default function MyMeetingsList({ meetings }: Props) {
+export default function MeetingsList({ meetings, viewerId, emptyMessage = "No meetings here yet." }: Props) {
   const [deleting, setDeleting] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
 
@@ -76,11 +59,7 @@ export default function MyMeetingsList({ meetings }: Props) {
   }
 
   if (meetings.length === 0) {
-    return (
-      <p className="text-sm text-blue-100/60">
-        You haven&apos;t created any meetings yet. Use the form above to schedule one with a connected friend.
-      </p>
-    );
+    return <p className="text-sm text-blue-100/60">{emptyMessage}</p>;
   }
 
   return (
@@ -88,9 +67,11 @@ export default function MyMeetingsList({ meetings }: Props) {
       {error ? <p className="text-sm text-red-300">{error}</p> : null}
       <ul className="space-y-3">
         {meetings.map((m) => {
+          const isCreator = m.creator?.id === viewerId;
           const accepted = m.invitations.filter((i) => i.status === "accepted").length;
           const invited = m.invitations.length;
           const isDeleting = deleting.has(m.id);
+          const viewerInvitation = m.invitations.find((i) => i.invitee?.id === viewerId);
 
           return (
             <li key={m.id} className="rounded-lg border border-white/15 bg-white/5">
@@ -99,7 +80,8 @@ export default function MyMeetingsList({ meetings }: Props) {
                   <div>
                     <p className="font-medium">{formatStartsAt(m.starts_at)}</p>
                     <p className="text-xs text-blue-100/60">
-                      {m.duration_minutes} min · {accepted}/{invited} accepted
+                      {m.duration_minutes} min
+                      {isCreator ? ` · ${accepted}/${invited} accepted` : null}
                     </p>
                   </div>
                   <span className="text-xs text-blue-100/50 group-open:hidden">expand</span>
@@ -114,34 +96,55 @@ export default function MyMeetingsList({ meetings }: Props) {
                     <p className="text-xs text-blue-100/50">Description</p>
                     <p className="text-sm whitespace-pre-line text-white">{m.description}</p>
                   </div>
-                  <div>
-                    <p className="mb-1 text-xs text-blue-100/50">Invitations</p>
-                    <ul className="space-y-1">
-                      {m.invitations.map((inv) => (
-                        <li key={inv.id} className="flex items-center justify-between gap-3">
-                          <span className="text-sm text-white">{inv.invitee?.display_name ?? "Unnamed friend"}</span>
+                  {isCreator ? (
+                    <div>
+                      <p className="mb-1 text-xs text-blue-100/50">Invitations</p>
+                      <ul className="space-y-1">
+                        {m.invitations.map((inv) => (
+                          <li key={inv.id} className="flex items-center justify-between gap-3">
+                            <span className="text-sm text-white">{inv.invitee?.display_name ?? "Unnamed friend"}</span>
+                            <span
+                              className={`rounded-full border px-2 py-0.5 text-xs font-medium ${badgeClass[inv.status]}`}
+                            >
+                              {inv.status}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : (
+                    <>
+                      <div>
+                        <p className="text-xs text-blue-100/50">Created by</p>
+                        <p className="text-sm text-white">{m.creator?.display_name ?? "Unnamed friend"}</p>
+                      </div>
+                      {viewerInvitation ? (
+                        <div>
+                          <p className="mb-1 text-xs text-blue-100/50">Your response</p>
                           <span
-                            className={`rounded-full border px-2 py-0.5 text-xs font-medium ${badgeClass[inv.status]}`}
+                            className={`inline-block rounded-full border px-2 py-0.5 text-xs font-medium ${badgeClass[viewerInvitation.status]}`}
                           >
-                            {inv.status}
+                            {viewerInvitation.status}
                           </span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="flex justify-end">
-                    <Button
-                      type="button"
-                      onClick={() => handleDelete(m.id)}
-                      disabled={isDeleting}
-                      className="rounded-lg bg-rose-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-rose-500 disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      <span className="flex items-center gap-2">
-                        <Trash2 className="size-4" />
-                        {isDeleting ? "Deleting..." : "Delete"}
-                      </span>
-                    </Button>
-                  </div>
+                        </div>
+                      ) : null}
+                    </>
+                  )}
+                  {isCreator ? (
+                    <div className="flex justify-end">
+                      <Button
+                        type="button"
+                        onClick={() => handleDelete(m.id)}
+                        disabled={isDeleting}
+                        className="rounded-lg bg-rose-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-rose-500 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        <span className="flex items-center gap-2">
+                          <Trash2 className="size-4" />
+                          {isDeleting ? "Deleting..." : "Delete"}
+                        </span>
+                      </Button>
+                    </div>
+                  ) : null}
                 </div>
               </details>
             </li>

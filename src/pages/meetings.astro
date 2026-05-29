@@ -2,7 +2,8 @@
 import Layout from "@/layouts/Layout.astro";
 import { createClient } from "@/lib/supabase";
 import MeetingCreateForm from "@/components/meetings/MeetingCreateForm";
-import MyMeetingsList from "@/components/meetings/MyMeetingsList";
+import MeetingsList from "@/components/meetings/MeetingsList";
+import PendingInvitationsList from "@/components/meetings/PendingInvitationsList";
 import type { ClashingMeetingSummary, MeetingRow, PendingInvitation } from "@/components/meetings/types";
 
 // Middleware guarantees `user` is non-null on this protected route — see src/middleware.ts.
@@ -14,8 +15,8 @@ let pendingInvitations: PendingInvitation[] = [];
 let upcoming: MeetingRow[] = [];
 let past: MeetingRow[] = [];
 let conflictsByInvitationId: Record<string, ClashingMeetingSummary[]> = {};
-let creatorOwnedMeetings: MeetingRow[] = [];
 let loadError: string | null = null;
+const viewerId = user?.id ?? "";
 
 const supabase = user ? createClient(Astro.request.headers, Astro.cookies) : null;
 
@@ -44,7 +45,6 @@ if (!user) {
     friends = friendsRes.data;
     meetings = meetingsRes.data;
 
-    const viewerId = user.id;
     const now = Date.now();
 
     pendingInvitations = meetings.flatMap((m) => {
@@ -78,16 +78,6 @@ if (!user) {
         return [pi.invitation_id, clashes];
       }),
     );
-
-    // Phase-2 bridge: render only meetings the viewer created via the existing
-    // creator-only MyMeetingsList. Phase 3 replaces this with the perspective-
-    // aware MeetingsList consuming upcoming/past, and this branch goes away.
-    creatorOwnedMeetings = meetings.filter((m) => m.creator?.id === viewerId);
-
-    // Phase-2 bridge: upcoming/past/conflictsByInvitationId are computed here
-    // for Phase 3's three-section JSX (PendingInvitationsList + MeetingsList).
-    // The void marker keeps lint quiet for the unconsumed derivations.
-    void [upcoming, past, conflictsByInvitationId];
   }
 }
 ---
@@ -116,8 +106,18 @@ if (!user) {
       </section>
 
       <section class="rounded-2xl border border-white/10 bg-white/10 p-6 text-white backdrop-blur-xl">
-        <h2 class="mb-4 text-lg font-semibold">My created meetings</h2>
-        <MyMeetingsList meetings={creatorOwnedMeetings} client:visible />
+        <h2 class="mb-4 text-lg font-semibold">Pending invitations</h2>
+        <PendingInvitationsList invitations={pendingInvitations} conflicts={conflictsByInvitationId} client:visible />
+      </section>
+
+      <section class="rounded-2xl border border-white/10 bg-white/10 p-6 text-white backdrop-blur-xl">
+        <h2 class="mb-4 text-lg font-semibold">Upcoming meetings</h2>
+        <MeetingsList meetings={upcoming} viewerId={viewerId} emptyMessage="No upcoming meetings." client:visible />
+      </section>
+
+      <section class="rounded-2xl border border-white/10 bg-white/10 p-6 text-white backdrop-blur-xl">
+        <h2 class="mb-4 text-lg font-semibold">Past meetings</h2>
+        <MeetingsList meetings={past} viewerId={viewerId} emptyMessage="No past meetings." client:visible />
       </section>
     </div>
   </div>
