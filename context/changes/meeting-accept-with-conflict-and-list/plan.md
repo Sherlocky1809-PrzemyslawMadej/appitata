@@ -49,10 +49,7 @@ S-03 closes the co-care loop: an invited parent can accept or decline a pending 
 - Pagination or virtualization of the upcoming/past lists — out of scope at MVP `target_scale.users: medium` and "3 friends" secondary success criterion.
 - shadcn dialog / toast components — keep the slice component-budget-neutral.
 - A SECURITY DEFINER RPC for the respond mutation — single-row update; bare supabase-js + RLS is enough.
-- Committed visual-regression baselines (golden screenshots checked into git via `expect(page).toHaveScreenshot()` + a repo-tracked `__screenshots__/` folder) — Phase 4 captures evidence-only screenshots to a gitignored `.verify-evidence/playwright/` folder; tests fail on functional assertions, not pixel diffs.
-- Parallel Playwright execution — the suite shares a single seeded local DB, so tests must run serially (`workers: 1`); a parallel-friendly per-worker schema strategy is out of scope.
-- A unit-test runner (`vitest`, `node:test`, etc.) — still a Module-3 concern; Phase 4 adds E2E coverage only.
-- CI integration for the Playwright suite — first lands as a local-only `npm run test:e2e`; wiring into `.github/workflows/ci.yml` (which today only runs lint + build) is a follow-up.
+- An automated test suite (Playwright, vitest, `node:test`, etc.) — this slice ships UI + API code only; coverage stays manual via the verification matrix at the bottom of the doc. A test-runner story is a Module-3 concern.
 
 ## Implementation Approach
 
@@ -223,7 +220,7 @@ Restructure `/meetings.astro` into three sections, ship `PendingInvitationsList`
 - Props: `{ invitations: PendingInvitation[]; conflicts: Record<string, ClashingMeetingSummary[]> }`.
 - Empty state: "No pending invitations." (matches the `IncomingRequestsList` vocabulary).
 - Per-row layout: top — display the meeting starts_at (formatted via `toLocaleString()`), duration, address summary, creator display_name, description. Conflict block — only when `conflicts[id].length > 0`: a yellow notice card (`border-amber-400/40 bg-amber-500/10 text-amber-200`) with `data-testid="conflict-warning"` reading "Heads up — this overlaps with: " then a bulleted list of clashing meetings by `toLocaleString(starts_at)` + duration. Accept (emerald, `<Check>` icon) + Decline (outline ghost, `<X>` icon) buttons aligned to the right.
-- **Test hooks (load-bearing for Phase 4).** Each `<li>` row receives `data-testid="pending-invitation"` and `data-invitation-id={r.invitation_id}`. The conflict notice card receives `data-testid="conflict-warning"`. The Accept/Decline buttons receive `data-testid="accept-button"` / `data-testid="decline-button"` respectively. These are the only stable selectors Phase 4 tests use to discover invitation_ids and assert UX state without coupling to copy. Adding them is a one-attribute-per-element delta with zero behavioral impact.
+- **Test hooks.** Each `<li>` row receives `data-testid="pending-invitation"` and `data-invitation-id={r.invitation_id}`. The conflict notice card receives `data-testid="conflict-warning"`. The Accept/Decline buttons receive `data-testid="accept-button"` / `data-testid="decline-button"` respectively. These give a future test harness stable selectors that don't couple to copy. Adding them is a one-attribute-per-element delta with zero behavioral impact.
 - In-flight state: `const [pendingId, setPendingId] = useState<string | null>(null)` mirroring `IncomingRequestsList`. Both buttons disabled when `pendingId === r.invitation_id`.
 - On click: fetch `/api/meetings/invitations/respond` with `{ invitation_id, action }`. On 2xx → `window.location.reload()`. On error → setError with the body's `error` field (fallback "Could not respond"). Catch → "Network error".
 - Use the same `Button` import from `@/components/ui/button`, same lucide icons (`Check`, `X`), and same color vocabulary as `IncomingRequestsList`. No new shadcn components.
@@ -286,129 +283,7 @@ Restructure `/meetings.astro` into three sections, ship `PendingInvitationsList`
 - A 404 happens when Bob attempts to respond to a stale page after Alice deleted the meeting: error banner shows "not found" via the existing `error` state.
 - AGENTS.md `§Current state` reads coherently with S-03 reflected; the "accept/decline … ships in S-03" line is removed and the new RLS policy + column-grant + three-section page composition are described.
 
-**Implementation Note**: After completing this phase and all automated verification passes, pause here for manual confirmation from the human that the manual matrix passed before proceeding to Phase 4.
-
----
-
-## Phase 4: E2E coverage with Playwright
-
-### Overview
-
-Add Playwright as a dev dependency, scaffold a small E2E harness that boots the Cloudflare-workerd dev server, signs in as Alice and Bob via the existing `/auth/signin` form (saving each role's auth state to a gitignored `.auth/` folder), and runs ten serial tests that mirror the Phase 3 manual matrix (six UI flows: 3.4-3.9) and the Phase 2 negative-path API matrix (four API rejections: 2.6-2.9). Each test captures evidence screenshots to a gitignored `.verify-evidence/playwright/` folder at meaningful checkpoints — the screenshots are for human review, not pixel-diff assertions. The DB is reset once before the suite via `globalSetup`.
-
-### Changes Required:
-
-#### 1. Playwright dependency + config + npm scripts
-
-**File**: `package.json` (modified), `playwright.config.ts` (new), `.gitignore` (modified)
-
-**Intent**: Bring `@playwright/test` into the project as a devDependency, configure it for the Cloudflare-workerd dev server, declare two storage-state-backed projects (alice + bob), and add `npm run test:e2e` / `npm run test:e2e:ui` scripts. Add `.gitignore` entries so screenshots and auth state never get committed.
-
-**Contract**:
-
-- `package.json`: add `"@playwright/test": "^1.49.0"` (or whatever the latest pinned in the registry is at install time) under `devDependencies`; add `"test:e2e": "playwright test"`, `"test:e2e:ui": "playwright test --ui"`, and `"test:e2e:install": "playwright install chromium"` under `scripts`. The `:install` script lets a new clone bootstrap the Chromium binary without pulling all three browsers.
-- `playwright.config.ts` at repo root with:
-  - `testDir: 'tests/e2e'`
-  - `globalSetup: './tests/e2e/global-setup.ts'`
-  - `fullyParallel: false`, `workers: 1` (serial, shared DB)
-  - `retries: 0` (failed tests should not paper over flakes; investigate and fix)
-  - `timeout: 60_000`, `expect.timeout: 10_000`
-  - `reporter: [['list'], ['html', { outputFolder: '.verify-evidence/playwright/report', open: 'never' }]]`
-  - `use: { baseURL: process.env.E2E_BASE_URL ?? 'http://localhost:4321', trace: 'retain-on-failure', screenshot: 'off' }` (screenshot off in `use` — the test helper does targeted captures instead of one-per-test default)
-  - `webServer: { command: 'npm run dev', url: BASE_URL, reuseExistingServer: !process.env.CI, timeout: 120_000, stdout: 'ignore', stderr: 'pipe' }` where `const BASE_URL = process.env.E2E_BASE_URL ?? 'http://localhost:4321'` lives at the top of `playwright.config.ts` and is used for both `use.baseURL` and `webServer.url` so the two cannot drift. `npm run dev` is `astro dev` (verified in [package.json:6](package.json#L6)), so the default port is Astro's 4321; the Cloudflare adapter is build-time only, not dev-time. The root path `/` redirects to `/auth/signin` via middleware — Playwright treats the 302 as ready (<400), so polling `BASE_URL` works without a dedicated health endpoint.
-  - `projects: [{ name: 'setup', testMatch: /.*\.setup\.ts/ }, { name: 'chromium', dependencies: ['setup'], use: { ...devices['Desktop Chrome'] } }]`
-- `.gitignore`: append `tests/e2e/.auth/`, `.verify-evidence/playwright/`, `test-results/`, `playwright-report/`. (The existing `.verify-evidence/` entry per the [reference memory](reference_verify_evidence_dir.md) already covers the parent dir, but listing the playwright sub-path explicitly is cheap insurance against a future `!.verify-evidence/.gitkeep` style negation.)
-
-#### 2. Global DB reset + auth state setup
-
-**File**: `tests/e2e/global-setup.ts` (new), `tests/e2e/auth.setup.ts` (new)
-
-**Intent**: Before any test runs, reset the local DB so the seed fixture (Alice + Bob + accepted FC) is the known-good starting state. Then sign in as each role through the real `/auth/signin` form once and save the resulting cookie/session state to `.auth/alice.json` and `.auth/bob.json` so per-test setup is just a `storageState` load, not a real sign-in.
-
-**Contract**:
-
-- `global-setup.ts` exports a default async function that shells out to `npm run db:reset` via `node:child_process` `execSync` (or `execa` if simpler). Throws on non-zero exit. Logs duration. Verifies the seed fixture exists by hitting `${baseURL}/api/health` if one exists, or by skipping the verification — the test failures themselves will surface a missing seed.
-- `auth.setup.ts` declares two tests (`test('authenticate as alice', ...)`, `test('authenticate as bob', ...)`). Each navigates to `/auth/signin`, fills the email + password, submits, waits for the redirect to `/dashboard`, then calls `page.context().storageState({ path: 'tests/e2e/.auth/<role>.json' })`. The password constant is `password123!`, hard-coded as `LOCAL_DEV_PASSWORD` at the top of `auth.setup.ts` and re-stated in `tests/e2e/README.md` with a "local-only — never reuse in prod" note.
-- **Seed change required.** The current `supabase/seed.sql` ships `encrypted_password: ''` for both Alice and Bob, so `/auth/signin` rejects every login attempt today. Append the following to `supabase/seed.sql` after the existing `insert into auth.users …` block (still inside the file's idempotent posture — re-running `npm run db:reset` is safe because it always rewrites these two rows):
-  ```sql
-  -- E2E auth: stamp a bcrypt hash of the documented local-dev password.
-  -- pgcrypto is pre-enabled in Supabase local; no `create extension` needed.
-  -- Password constant: 'password123!' (see tests/e2e/README.md). Never reuse outside local dev.
-  update auth.users
-     set encrypted_password = crypt('password123!', gen_salt('bf'))
-   where id in (
-     '00000000-0000-0000-0000-000000000a01',
-     '00000000-0000-0000-0000-000000000b01'
-   );
-  ```
-  `gen_salt('bf')` produces the bcrypt `$2a$06$…` shape that Supabase Auth expects; `email_confirmed_at` is already set by the existing seed insert so no extra confirmation step is needed.
-- The seed-fixture password story is the **only schema-shape change Phase 4 imposes on Phase 1's migration boundary**. It does not touch any application table — just `auth.users.encrypted_password` for the two seeded rows.
-
-#### 3. Evidence screenshot helper
-
-**File**: `tests/e2e/helpers/evidence.ts` (new)
-
-**Intent**: Centralise the screenshot-path convention so individual tests stay readable and a single grep finds every checkpoint.
-
-**Contract**: Export `evidenceShot(page: Page, testInfo: TestInfo, label: string): Promise<void>` that resolves the path to `.verify-evidence/playwright/${testInfo.titlePath.join('-').replace(/\s+/g,'_')}-${label}.png` (kebab-safe), ensures the parent directory exists, and calls `page.screenshot({ path, fullPage: true })`. Tests call `await evidenceShot(page, testInfo, 'after-accept')` at meaningful points; the resulting filename pinpoints which test took it and which step.
-
-#### 4. UI-flow specs (mirror Phase 3 manual items 3.4-3.9)
-
-**File**: `tests/e2e/meetings-flows.spec.ts` (new)
-
-**Intent**: Six tests, one per Phase 3 manual verification bullet, each ending in evidence screenshots at the assertion points. Tests share the alice and bob storage states via `test.use({ storageState })` per-test (not per-file) so a single spec can swap roles mid-flow.
-
-**Invitation-id discovery (load-bearing).** Several tests below pre-arrange via API (Alice POSTs `/api/meetings`, returns `meeting_id`) but then need Bob's `invitation_id` to drive the respond endpoint. No GET endpoint lists invitations, and adding one is out of scope. The canonical discovery pattern: Bob loads `/meetings`, the page renders a row with `data-testid="pending-invitation"` + `data-invitation-id="<uuid>"` (per the Phase 3 §1 contract), and the test extracts the id via `await page.getByTestId('pending-invitation').first().getAttribute('data-invitation-id')`. Test 2.7 (the API-only one that needs this) follows the same path: spin up a transient page context, navigate, read the attribute, dispose, then make the negative-path API call. Document this pattern in `tests/e2e/README.md` (see §6).
-
-**Contract** (titles + outline only; the implementer writes the Playwright assertions):
-
-- `test('3.4 alice sees create form + empty pending + creator-branch upcoming after creating a meeting', ...)` — Alice signs in (storageState), navigates to `/meetings`, fills the create form via existing FormField selectors, picks Bob from the friend checklist, submits, waits for reload, asserts Pending invitations section says "No pending invitations.", asserts the Upcoming section now has 1 entry with "0/1 accepted" text and a Delete button visible (creator-branch render). Screenshots: `loaded`, `after-create`.
-- `test('3.5 bob sees pending invitation, accepts, lands in invitee-branch upcoming', ...)` — Pre-arrange: Alice creates a meeting inviting Bob via POST `/api/meetings` (using `request.newContext({ storageState: alice })`). Bob (storageState) navigates to `/meetings`, locates the pending row via `getByTestId('pending-invitation')`, asserts no `[data-testid="conflict-warning"]` is present under that row, clicks `getByTestId('accept-button')`, waits for reload, asserts Pending is empty and Upcoming has one row labelled "Created by Alice" with no Delete button. Screenshots: `pending-no-conflict`, `after-accept`.
-- `test('3.6 bob sees conflict warning on overlapping invitation, declines', ...)` — Pre-arrange: Alice POSTs two meetings at the same starts_at inviting Bob (capturing both `meeting_id`s). Bob's helper page navigates once to discover both `invitation_id`s via the `[data-invitation-id]` attribute, then accepts the first via the respond API directly. Bob (storageState) navigates to `/meetings` again, locates the surviving pending row by its known `data-invitation-id`, asserts `[data-testid="conflict-warning"]` is present under it (assertion via testid, not copy literal — see F7), asserts the warning text includes the already-accepted meeting's `toLocaleString` formatted start, clicks `getByTestId('decline-button')`, waits for reload, asserts the declined row is in neither Pending nor Upcoming. Screenshots: `conflict-warning`, `after-decline`.
-- `test('3.7 alice sees per-invitee statuses reflecting bob accept + decline', ...)` — Reuses the data state from 3.5 + 3.6 logically (but each test arranges independently via API). Alice (storageState) navigates to `/meetings`, expands each created meeting, asserts the per-invitee status badge for Bob reads `accepted` on the first meeting and `declined` on the second. Screenshot: `creator-perspective`.
-- `test('3.8 a past-dated meeting renders in past section, descending', ...)` — Pre-arrange: Alice creates two meetings via POST `/api/meetings` with `starts_at = now - 3h` and `starts_at = now - 5h` (both default `duration_minutes = 60`, so they end at `now - 2h` and `now - 4h` respectively — comfortably past, no timing race against the `endsAt < now()` cutoff). The zod schema accepts past datetimes (verified — no future-only constraint). Alice navigates to `/meetings`, asserts the Past section shows both entries with the `now - 3h` one rendered above the `now - 5h` one (descending). Screenshot: `past-desc`.
-- `test('3.9 stale-page 404 on accept after meeting deleted', ...)` — Pre-arrange: Alice creates a meeting inviting Bob via API. Bob (storageState) navigates to `/meetings` (sees the pending). In a second context, Alice DELETEs the meeting via `/api/meetings/[id]`. Bob clicks Accept on the now-stale invitation in his original page, asserts the error banner contains "not found". Screenshot: `stale-404`.
-
-#### 5. API negative-path specs (mirror Phase 2 manual items 2.6-2.9)
-
-**File**: `tests/e2e/respond-api.spec.ts` (new)
-
-**Intent**: Four tests covering the response endpoint's rejection paths. These use `request.newContext({ storageState })` and never spin up a page — they're API-level assertions wearing Playwright clothes.
-
-**Contract**:
-
-- `test('2.6 POST with unknown invitation_id returns 404', ...)` — Bob's request context posts a random UUID; expect `response.status() === 404`, body `{ error: "not found" }`.
-- `test('2.7 POST with already-accepted invitation_id returns 404 (one-shot)', ...)` — Bob's context first accepts a pending invitation Alice arranged, then posts the same id with `action: "decline"`; expect 404.
-- `test('2.8 POST with action="expired" returns 400 (zod enum rejects)', ...)` — Bob's context posts a valid invitation_id with `action: "expired"`; expect 400 and the body's error message references "action" or the zod enum issue.
-- `test('2.9 unauthenticated POST returns 401', ...)` — Uses `request.newContext()` with no storage state; expect 401, body `{ error: "unauthorized" }`.
-
-#### 6. README for the E2E harness
-
-**File**: `tests/e2e/README.md` (new)
-
-**Intent**: A 30-line operator's guide so the next person doesn't have to reverse-engineer the harness from the config.
-
-**Contract**: Sections: (a) "First time setup" — install deps, run `npm run test:e2e:install`. (b) "Running the suite" — `npm run db:reset` is not required (globalSetup handles it), but Docker must be up. (c) "Evidence" — where screenshots land (`.verify-evidence/playwright/`), how to clean. (d) "Auth state" — what `.auth/*.json` is, when to delete it (after seed-fixture password changes), why it's gitignored. (e) "Credentials" — the documented local-dev password constant and its source in `supabase/seed.sql`. (f) "CI" — explicitly marked as out-of-scope-for-now; the suite is local-only this slice.
-
-### Success Criteria:
-
-#### Automated Verification:
-
-- Dependency installs cleanly: `npm install` succeeds with `@playwright/test` resolved.
-- Browser binary installs: `npm run test:e2e:install` downloads Chromium without error.
-- All ten tests pass: `npm run test:e2e` exits 0 (the auth-setup-then-ten-tests sequence, with `npm run db:reset` running once in globalSetup).
-- Type-check passes across the new test files: `npm run astro check` (Astro's check now also lints the `tests/e2e/**` TypeScript surface since they share the `tsconfig.json` root).
-- Lint passes on touched files (Windows-CRLF posture): `npx eslint tests/e2e/**/*.ts playwright.config.ts package.json` (lint may not introspect package.json — drop it from the eslint glob if so; the lint config decides).
-- The HTML report renders without error: `.verify-evidence/playwright/report/index.html` exists after a passing run.
-
-#### Manual Verification:
-
-- After a passing run, `.verify-evidence/playwright/` contains one `.png` per `evidenceShot()` call (≈10-14 screenshots), each named `<test-title>-<label>.png`. A human reviewer opens 2-3 at random and confirms the rendered UI matches expectations.
-- The HTML report at `.verify-evidence/playwright/report/index.html` opens in a browser and shows ten passing tests with per-test trace links.
-- Deleting `tests/e2e/.auth/` and rerunning the suite still passes — the auth setup test re-creates the storage states from a clean slate. Verifies the harness is self-bootstrapping.
-- Intentionally break one of the assertions (e.g. flip the expected `0/1 accepted` to `1/1 accepted` in test 3.4) and confirm the suite fails with a clear actionable error AND a failure trace is captured to `test-results/`. Revert.
-
-**Implementation Note**: After completing this phase and all automated verification passes, the slice is done. No further manual gate beyond inspecting a few evidence screenshots.
+**Implementation Note**: This is the final phase. After all automated checks pass and the manual matrix is confirmed, the slice is done.
 
 ---
 
@@ -416,12 +291,11 @@ Add Playwright as a dev dependency, scaffold a small E2E harness that boots the 
 
 ### Unit Tests:
 
-- None added in this slice. The repo still has no unit-test runner configured; Phase 4 adds a Playwright **E2E** harness, which is a different lifecycle (browser-driven, slower, full-stack) from unit tests. A `vitest`-style unit runner remains a Module-3 concern.
+- None added in this slice. The repo still has no unit-test runner configured; a `vitest`-style runner remains a Module-3 concern.
 
 ### Integration / E2E Tests:
 
-- **Automated (Phase 4).** Ten Playwright tests covering six UI flows (Phase 3 manual items 3.4-3.9) and four API negative paths (Phase 2 manual items 2.6-2.9), running serially against a `globalSetup`-reset local DB, capturing evidence-only screenshots to `.verify-evidence/playwright/`. Runtime estimate: 90-150s including the one-time `npm run db:reset` (~20s) + browser launch + serial test execution. Run via `npm run test:e2e`.
-- **Manual (Phase 3 matrix).** Even with the harness in place, the first end-to-end pass after a meaningful UI or SSR change should still be done by a human in a browser — the Phase 3 manual matrix is the canonical "does this feel right" checkpoint. Playwright catches functional regressions on subsequent runs; the human pass catches things the harness's assertions don't model (visual polish, motion, focus order).
+- No automated suite in this slice. Coverage is the manual matrix at the bottom of Phase 3 (six UI flows: 3.4-3.9) plus the Phase 2 negative-path API checks (2.6-2.9), executed by a human in a browser / curl after each meaningful change. The testid hooks shipped in Phase 3 (`pending-invitation` / `conflict-warning` / `accept-button` / `decline-button` + `data-invitation-id`) are in place so a future test harness can wire onto stable selectors.
 
 ### Manual Testing Steps:
 
@@ -434,7 +308,6 @@ Add Playwright as a dev dependency, scaffold a small E2E harness that boots the 
 7. Sign in as Bob. Verify the new pending invitation shows with a yellow conflict warning naming Alice's first meeting. Decline. Verify it does not move to Upcoming.
 8. Negative path: in Bob's session, try POSTing the respond endpoint with the just-declined invitation_id → 404. Try with action = "expired" → 400.
 9. Verify AGENTS.md §Current state reads coherently and reflects the S-03 changes.
-10. `npm run test:e2e:install` once to download the Chromium binary on a fresh clone, then `npm run test:e2e` — all ten tests pass; spot-check 2-3 screenshots in `.verify-evidence/playwright/` and open the HTML report at `.verify-evidence/playwright/report/index.html`.
 
 ## Performance Considerations
 
@@ -496,34 +369,16 @@ Add Playwright as a dev dependency, scaffold a small E2E harness that boots the 
 
 #### Automated
 
-- [x] 3.1 Type-check passes: `npm run astro check` returns 0 across the new component, the renamed list, and the updated page
-- [x] 3.2 Lint passes on touched files: `npx eslint src/components/meetings/PendingInvitationsList.tsx src/components/meetings/MeetingsList.tsx src/pages/meetings.astro`
-- [x] 3.3 Build passes: `npm run build`
+- [x] 3.1 Type-check passes: `npm run astro check` returns 0 across the new component, the renamed list, and the updated page — ad4fb64
+- [x] 3.2 Lint passes on touched files: `npx eslint src/components/meetings/PendingInvitationsList.tsx src/components/meetings/MeetingsList.tsx src/pages/meetings.astro` — ad4fb64
+- [x] 3.3 Build passes: `npm run build` — ad4fb64
 
 #### Manual
 
-- [x] 3.4 As Alice: `/meetings` renders Create form + empty Pending + (after creating one) Upcoming with creator-branch rendering
-- [x] 3.5 As Bob: pending invitation shows; clicking Accept moves it to Upcoming with invitee-branch rendering ("Created by Alice", no Delete)
-- [x] 3.6 As Alice: create a second meeting for the same time inviting Bob. As Bob: pending shows inline yellow conflict warning naming the already-accepted meeting. Decline. Verify it does not move to Upcoming.
-- [x] 3.7 As Alice (creator): Upcoming shows per-invitee status reflecting Bob's accept on first meeting and decline on second
-- [x] 3.8 A past-dated meeting renders in the Past section in descending order
-- [x] 3.9 Stale-page 404: Bob attempts to respond after Alice deleted the meeting → error banner shows "not found"
-- [x] 3.10 AGENTS.md §Current state reads coherently with S-03 reflected; the "accept/decline … ships in S-03" line is removed
-
-### Phase 4: E2E coverage with Playwright
-
-#### Automated
-
-- [ ] 4.1 Dependency installs cleanly: `npm install` succeeds with `@playwright/test` resolved
-- [ ] 4.2 Browser binary installs: `npm run test:e2e:install` downloads Chromium without error
-- [ ] 4.3 All ten tests pass: `npm run test:e2e` exits 0 (auth-setup + six UI flows mirroring 3.4-3.9 + four API negatives mirroring 2.6-2.9)
-- [ ] 4.4 Type-check passes across new test files: `npm run astro check`
-- [ ] 4.5 Lint passes on touched files: `npx eslint tests/e2e/**/*.ts playwright.config.ts` (Windows-CRLF posture)
-- [ ] 4.6 HTML report renders without error: `.verify-evidence/playwright/report/index.html` exists after a passing run
-
-#### Manual
-
-- [ ] 4.7 After a passing run, `.verify-evidence/playwright/` contains one `.png` per `evidenceShot()` call (≈10-14 screenshots), each named `<test-title>-<label>.png`; a human spot-checks 2-3 and confirms the rendered UI matches expectations
-- [ ] 4.8 HTML report at `.verify-evidence/playwright/report/index.html` opens in a browser and shows ten passing tests with per-test trace links
-- [ ] 4.9 Deleting `tests/e2e/.auth/` and rerunning still passes — the auth setup test re-creates storage states from a clean slate (harness is self-bootstrapping)
-- [ ] 4.10 Intentionally break one assertion in a test, confirm the suite fails clearly with a captured failure trace in `test-results/`, then revert
+- [x] 3.4 As Alice: `/meetings` renders Create form + empty Pending + (after creating one) Upcoming with creator-branch rendering — ad4fb64
+- [x] 3.5 As Bob: pending invitation shows; clicking Accept moves it to Upcoming with invitee-branch rendering ("Created by Alice", no Delete) — ad4fb64
+- [x] 3.6 As Alice: create a second meeting for the same time inviting Bob. As Bob: pending shows inline yellow conflict warning naming the already-accepted meeting. Decline. Verify it does not move to Upcoming. — ad4fb64
+- [x] 3.7 As Alice (creator): Upcoming shows per-invitee status reflecting Bob's accept on first meeting and decline on second — ad4fb64
+- [x] 3.8 A past-dated meeting renders in the Past section in descending order — ad4fb64
+- [x] 3.9 Stale-page 404: Bob attempts to respond after Alice deleted the meeting → error banner shows "not found" — ad4fb64
+- [x] 3.10 AGENTS.md §Current state reads coherently with S-03 reflected; the "accept/decline … ships in S-03" line is removed — ad4fb64
