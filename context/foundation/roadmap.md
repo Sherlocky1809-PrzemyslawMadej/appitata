@@ -3,7 +3,7 @@ project: AppiTata
 version: 1
 status: draft
 created: 2026-05-25
-updated: 2026-05-28
+updated: 2026-05-29
 prd_version: 1
 main_goal: speed
 top_blocker: time
@@ -31,7 +31,7 @@ Parents already have friends they trust; what they lack is a low-effort way to c
 | ---- | ------------------------------------- | --------------------------------------------------------------------------------- | ------------- | --------------------------------------------- | -------- |
 | F-01 | parents-profile-and-rls-foundation    | (foundation) every domain table FKs to `parents`; RLS pattern enforces privacy    | —             | FR-001, NFR §Privacy boundary, Access Control | done     |
 | S-01 | friend-connection-handshake           | search a parent by email/phone, request → accept/decline, see connected friends   | F-01          | US-02, FR-001, FR-002, FR-003, FR-004, FR-005 | done     |
-| S-02 | meeting-creation-and-invite           | create a meeting (date, time, structured address, description) and invite friends | F-01, S-01    | US-01 (partial), FR-006, FR-007               | proposed |
+| S-02 | meeting-creation-and-invite           | create a meeting (date, time, structured address, description) and invite friends | F-01, S-01    | US-01 (partial), FR-006, FR-007               | done     |
 | S-03 | meeting-accept-with-conflict-and-list | accept/decline an invitation (with conflict warning) and see upcoming/past list   | F-01, S-02    | US-01 (completes), FR-008, FR-009, FR-010     | proposed |
 | S-04 | invitation-expiry-cron-backstop       | never see a stale invitation past 24h — expiry is sweep-enforced, not only lazy   | F-01, S-03    | FR-008 (hardening)                            | proposed |
 
@@ -87,7 +87,7 @@ What's already in place in the codebase as of 2026-05-25 (auto-researched + user
 - **Unknowns:**
   - Which fields make up the "structured address" beyond street / city / postal code / country? — Owner: user. Block: no (default to those four free-text fields for MVP; revisit if a real address fails to fit).
 - **Risk:** The meeting created here is the row S-03's accept-with-conflict logic reads against. The shape of the time field (single `starts_at` vs `starts_at` + `duration_minutes`) determines how FR-009's overlap test in S-03 can be expressed — settle this in S-02's `/10x-plan`, not deferred into S-03.
-- **Status:** proposed
+- **Status:** done
 
 ### S-03: A parent accepts a meeting invitation (with conflict warning) and sees upcoming/past meetings
 
@@ -144,3 +144,4 @@ None — PRD §Open Questions is empty and no cross-cutting question was surface
 
 - **F-01: (foundation) every parent who signs up has a corresponding row in a domain `parents` table linked to `auth.users`; every later domain table FKs to `parents.id`; a reusable RLS policy template enforces the "visible only to me and to my connected friends" rule that every later table will inherit.** — Archived 2026-05-27 → `context/archive/2026-05-26-parents-profile-and-rls-foundation/`. Lesson: —.
 - **S-01: a parent can search for another parent by email or phone, send a friend request, accept or decline an incoming request, and see their list of connected friends.** — Archived 2026-05-28 → `context/archive/2026-05-27-friend-connection-handshake/`. Lesson: —.
+- **S-02: a parent can create a meeting with a date, time, structured place address, and description, and invite one or more of their connected friends.** — Archived 2026-05-29 → `context/archive/2026-05-28-meeting-creation-and-invite/`. Lesson: —.

@@ -1,10 +1,10 @@
 ---
 change_id: meeting-creation-and-invite
 title: Meeting creation and invite
-status: impl_reviewed
+status: archived
 created: 2026-05-28
 updated: 2026-05-29
-archived_at: null
+archived_at: 2026-05-29T06:46:10Z
 ---
 
 ## Notes
