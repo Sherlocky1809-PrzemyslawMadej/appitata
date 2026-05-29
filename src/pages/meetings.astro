@@ -14,6 +14,7 @@ let pendingInvitations: PendingInvitation[] = [];
 let upcoming: MeetingRow[] = [];
 let past: MeetingRow[] = [];
 let conflictsByInvitationId: Record<string, ClashingMeetingSummary[]> = {};
+let creatorOwnedMeetings: MeetingRow[] = [];
 let loadError: string | null = null;
 
 const supabase = user ? createClient(Astro.request.headers, Astro.cookies) : null;
@@ -77,14 +78,18 @@ if (!user) {
         return [pi.invitation_id, clashes];
       }),
     );
+
+    // Phase-2 bridge: render only meetings the viewer created via the existing
+    // creator-only MyMeetingsList. Phase 3 replaces this with the perspective-
+    // aware MeetingsList consuming upcoming/past, and this branch goes away.
+    creatorOwnedMeetings = meetings.filter((m) => m.creator?.id === viewerId);
+
+    // Phase-2 bridge: upcoming/past/conflictsByInvitationId are computed here
+    // for Phase 3's three-section JSX (PendingInvitationsList + MeetingsList).
+    // The void marker keeps lint quiet for the unconsumed derivations.
+    void [upcoming, past, conflictsByInvitationId];
   }
 }
-
-const creatorOwnedMeetings = meetings.filter((m) => m.creator?.id === user?.id);
-const pendingCount = pendingInvitations.length;
-const upcomingCount = upcoming.length;
-const pastCount = past.length;
-const conflictKeys = Object.keys(conflictsByInvitationId);
 ---
 
 <Layout title="Meetings">
@@ -112,9 +117,6 @@ const conflictKeys = Object.keys(conflictsByInvitationId);
 
       <section class="rounded-2xl border border-white/10 bg-white/10 p-6 text-white backdrop-blur-xl">
         <h2 class="mb-4 text-lg font-semibold">My created meetings</h2>
-        <p class="mb-3 text-xs text-blue-100/50" data-testid="ssr-debug-counts">
-          pending: {pendingCount} · upcoming: {upcomingCount} · past: {pastCount} · conflict-keys: {conflictKeys.length}
-        </p>
         <MyMeetingsList meetings={creatorOwnedMeetings} client:visible />
       </section>
     </div>

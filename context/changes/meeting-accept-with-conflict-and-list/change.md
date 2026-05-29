@@ -1,7 +1,7 @@
 ---
 change_id: meeting-accept-with-conflict-and-list
 title: Meeting accept with conflict and list
-status: implementing
+status: impl_reviewed
 created: 2026-05-29
 updated: 2026-05-29
 archived_at: null

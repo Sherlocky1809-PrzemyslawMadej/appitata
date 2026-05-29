@@ -478,19 +478,19 @@ Add Playwright as a dev dependency, scaffold a small E2E harness that boots the 
 
 #### Automated
 
-- [x] 2.1 Type-check passes: `npm run astro check` returns 0 with the new SSR shape + the new endpoint
-- [x] 2.2 Lint passes on touched files: `npx eslint src/pages/api/meetings/invitations/respond.ts src/pages/meetings.astro src/components/meetings/types.ts` (Windows-CRLF posture — touched paths only)
-- [x] 2.3 Build passes: `npm run build`
+- [x] 2.1 Type-check passes: `npm run astro check` returns 0 with the new SSR shape + the new endpoint — abf1851
+- [x] 2.2 Lint passes on touched files: `npx eslint src/pages/api/meetings/invitations/respond.ts src/pages/meetings.astro src/components/meetings/types.ts` (Windows-CRLF posture — touched paths only) — abf1851
+- [x] 2.3 Build passes: `npm run build` — abf1851
 
 #### Manual
 
-- [x] 2.4 Curl/REST probe: signed-in as Bob, POST `/api/meetings/invitations/respond` with a valid `{ invitation_id, action: "accept" }` returns 200 with `{ id, status: "accepted", responded_at: <ISO> }` and the DB row reflects the change
-- [x] 2.5 Signed-in as Bob, POST with action `"decline"` on a different pending invitation returns 200 with `status: "declined"`
-- [x] 2.6 Signed-in as Bob, POST with an `invitation_id` Bob never received → 404 "not found"
-- [x] 2.7 Signed-in as Bob, POST with an already-accepted `invitation_id` → 404 "not found" (one-shot enforced)
-- [x] 2.8 Signed-in as Bob, POST with `action: "expired"` → 400 (zod enum rejects)
-- [x] 2.9 Unauthenticated POST → 401 "unauthorized"
-- [x] 2.10 Opening `/meetings` after a few accepts/declines: the SSR data shape is correct (pending count, upcoming count, past count match the DB expectations; `conflictsByInvitationId` keys match the pending IDs)
+- [x] 2.4 Curl/REST probe: signed-in as Bob, POST `/api/meetings/invitations/respond` with a valid `{ invitation_id, action: "accept" }` returns 200 with `{ id, status: "accepted", responded_at: <ISO> }` and the DB row reflects the change — abf1851
+- [x] 2.5 Signed-in as Bob, POST with action `"decline"` on a different pending invitation returns 200 with `status: "declined"` — abf1851
+- [x] 2.6 Signed-in as Bob, POST with an `invitation_id` Bob never received → 404 "not found" — abf1851
+- [x] 2.7 Signed-in as Bob, POST with an already-accepted `invitation_id` → 404 "not found" (one-shot enforced) — abf1851
+- [x] 2.8 Signed-in as Bob, POST with `action: "expired"` → 400 (zod enum rejects) — abf1851
+- [x] 2.9 Unauthenticated POST → 401 "unauthorized" — abf1851
+- [x] 2.10 Opening `/meetings` after a few accepts/declines: the SSR data shape is correct (pending count, upcoming count, past count match the DB expectations; `conflictsByInvitationId` keys match the pending IDs) — abf1851
 
 ### Phase 3: UI + integration
 

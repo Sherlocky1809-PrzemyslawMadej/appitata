@@ -44,6 +44,8 @@ export const POST: APIRoute = async (context) => {
     .from("meeting_invitations")
     .update({ status: nextStatus, responded_at: new Date().toISOString() })
     .eq("id", parsed.data.invitation_id)
+    // Defense-in-depth: mirrors the RLS USING `status = 'pending'`. Friend twin
+    // relies on RLS alone; this endpoint belt-and-suspenders both layers.
     .eq("status", "pending")
     .select("id, status, responded_at")
     .maybeSingle();
