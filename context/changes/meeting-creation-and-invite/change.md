@@ -1,9 +1,9 @@
 ---
 change_id: meeting-creation-and-invite
 title: Meeting creation and invite
-status: implementing
+status: implemented
 created: 2026-05-28
-updated: 2026-05-28
+updated: 2026-05-29
 archived_at: null
 ---
 
@@ -11,4 +11,4 @@ archived_at: null
 
 <!-- Free-form notes for this change: links, ad-hoc context, decisions that don't belong in research/frame/plan. -->
 
-- Phase 3 paused after automated checks (3.1–3.3) landed in `cec47b6`. Manual checks 3.4–3.12 still owed. Resume with `/10x-implement meeting-creation-and-invite phase 3` — the skill will detect the first `- [ ]` row in Progress (3.4) and pick up from there.
+- Phase 3 manual checks 3.4–3.12 verified end-to-end with Playwright on 2026-05-29; screenshots and results land in `.verify-evidence/meet-*.png` and `.verify-evidence/results-meetings.json`. All nine checks PASS; the evidence consumes the existing `cec47b6` SHA (no additional code commit was needed).

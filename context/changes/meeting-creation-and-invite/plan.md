@@ -643,12 +643,12 @@ The three partial indexes (`meeting_invitations_meeting_idx`, `meeting_invitatio
 
 #### Manual
 
-- [ ] 3.4 `/meetings` while signed out redirects to `/auth/signin`
-- [ ] 3.5 Signed-in `/meetings` renders the create form (with friend picker populated from `list_my_friends`) and the My created meetings list (initially empty)
-- [ ] 3.6 Submitting the form with valid inputs creates the meeting; page reloads; the new meeting appears in My created meetings with the invitee row + pending status badge
-- [ ] 3.7 Submit button is disabled when zero invitees are selected; inline field errors appear for invalid inputs (empty description, malformed datetime)
-- [ ] 3.8 The invitee can see the meeting via SQL probe (`select count(*) from meetings` impersonated as the invitee returns 1)
-- [ ] 3.9 Clicking Delete shows the native confirm() prompt; confirming removes the meeting + cascades invitations; cancelling does nothing
-- [ ] 3.10 A signed-in parent with zero connected friends sees the disabled-state empty message in the picker and no submit button
-- [ ] 3.11 `/dashboard` shows the new "Meetings" link, clicking it lands on `/meetings`
-- [ ] 3.12 AGENTS.md diff reads cleanly: §Current state acknowledges meetings + meeting_invitations + cross-table SELECT model + `create_meeting_with_invitations` RPC + immutability posture; §Key conventions has both new bullets (Cross-table visibility via RLS, Cross-table mutation via SECURITY DEFINER RPC)
+- [x] 3.4 `/meetings` while signed out redirects to `/auth/signin` — cec47b6
+- [x] 3.5 Signed-in `/meetings` renders the create form (with friend picker populated from `list_my_friends`) and the My created meetings list (initially empty) — cec47b6
+- [x] 3.6 Submitting the form with valid inputs creates the meeting; page reloads; the new meeting appears in My created meetings with the invitee row + pending status badge — cec47b6
+- [x] 3.7 Submit button is disabled when zero invitees are selected; inline field errors appear for invalid inputs (empty description, malformed datetime) — cec47b6
+- [x] 3.8 The invitee can see the meeting via SQL probe (`select count(*) from meetings` impersonated as the invitee returns 1) — cec47b6
+- [x] 3.9 Clicking Delete shows the native confirm() prompt; confirming removes the meeting + cascades invitations; cancelling does nothing — cec47b6
+- [x] 3.10 A signed-in parent with zero connected friends sees the disabled-state empty message in the picker and no submit button — cec47b6
+- [x] 3.11 `/dashboard` shows the new "Meetings" link, clicking it lands on `/meetings` — cec47b6
+- [x] 3.12 AGENTS.md diff reads cleanly: §Current state acknowledges meetings + meeting_invitations + cross-table SELECT model + `create_meeting_with_invitations` RPC + immutability posture; §Key conventions has both new bullets (Cross-table visibility via RLS, Cross-table mutation via SECURITY DEFINER RPC) — cec47b6
