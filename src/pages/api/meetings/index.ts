@@ -81,6 +81,9 @@ export const POST: APIRoute = async (context) => {
     if (error.message === "too many invitees (max 50)") {
       return json({ error: "too many invitees (max 50)" }, 400);
     }
+    // SQLSTATE fallback: a renamed RAISE message degrades to the right HTTP class, not 500.
+    if (error.code === "42501") return json({ error: "unauthorized" }, 403);
+    if (error.code === "22023") return json({ error: "invalid request" }, 400);
     return json({ error: error.message }, 500);
   }
 
