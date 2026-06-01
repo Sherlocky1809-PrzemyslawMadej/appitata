@@ -257,28 +257,28 @@ The sweep is a single indexed UPDATE (`meeting_invitations_invitee_pending_idx` 
 
 #### Automated
 
-- [x] 1.1 Migration applies cleanly on a fresh DB (`npm run db:reset`)
-- [x] 1.2 Types regenerate without drift beyond the new function (`npm run db:types`)
-- [x] 1.3 Sweep is correct + idempotent (25h-old row → expired, returns 1; second call returns 0)
-- [x] 1.4 A fresh pending row is untouched by the sweep
+- [x] 1.1 Migration applies cleanly on a fresh DB (`npm run db:reset`) — 01e5dd2
+- [x] 1.2 Types regenerate without drift beyond the new function (`npm run db:types`) — 01e5dd2
+- [x] 1.3 Sweep is correct + idempotent (25h-old row → expired, returns 1; second call returns 0) — 01e5dd2
+- [x] 1.4 A fresh pending row is untouched by the sweep — 01e5dd2
 
 #### Manual
 
-- [x] 1.5 RLS guard blocks accept of a 25h-old pending row (0 rows affected)
+- [x] 1.5 RLS guard blocks accept of a 25h-old pending row (0 rows affected) — 01e5dd2
 
 ### Phase 2: Cloudflare cron worker entrypoint
 
 #### Automated
 
-- [ ] 2.1 Worker types generated (`npx wrangler types` → `worker-configuration.d.ts`, `Env` resolves)
-- [ ] 2.2 Build succeeds with the custom entrypoint (`npm run build`)
-- [ ] 2.3 Lint passes on touched files (`npx eslint src/worker.ts src/lib/supabase-admin.ts`)
-- [ ] 2.4 Type checking passes after `wrangler types` (`npx astro check` / `tsc --noEmit`)
+- [x] 2.1 Worker types generated (`npx wrangler types` → `worker-configuration.d.ts`, `Env` resolves)
+- [x] 2.2 Build succeeds with the custom entrypoint (`npm run build`)
+- [x] 2.3 Lint passes on touched files (`npx eslint src/worker.ts src/lib/supabase-admin.ts`)
+- [x] 2.4 Type checking passes after `wrangler types` (`npx astro check` / `tsc --noEmit`)
 
 #### Manual
 
-- [ ] 2.5 `wrangler dev` serves the app and `/dashboard` still redirects when logged out (middleware regression)
-- [ ] 2.6 Local scheduled trigger runs the sweep, logs the count, and expires a seeded stale row
+- [x] 2.5 `wrangler dev` serves the app and `/dashboard` still redirects when logged out (middleware regression)
+- [x] 2.6 Local scheduled trigger runs the sweep, logs the count, and expires a seeded stale row
 - [ ] 2.7 `wrangler deploy` registers the daily cron trigger (human-initiated)
 
 ### Phase 3: Read-path guard (UI)
