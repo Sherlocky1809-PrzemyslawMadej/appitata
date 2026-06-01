@@ -207,6 +207,7 @@ export type Database = {
         }
         Returns: string
       }
+      expire_stale_invitations: { Args: never; Returns: number }
       find_parent_by_handle: {
         Args: { handle: string }
         Returns: {
