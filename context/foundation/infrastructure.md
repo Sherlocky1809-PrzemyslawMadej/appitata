@@ -20,14 +20,14 @@ AppiTata is already scaffolded for Cloudflare (`@astrojs/cloudflare` v13.5 adapt
 
 Scored against the five criteria in `references/agent-friendly-criteria.md`. No hard filter applied — PRD `has_realtime: false` plus the lazy-expiry plan for FR-008 means the "persistent connections = don't know" answer doesn't disqualify any serverless platform.
 
-| Platform | CLI-first | Managed/Serverless | Agent docs | Deploy API | MCP / Integration | Score |
-|---|---|---|---|---|---|---|
-| **Cloudflare Workers** | Pass | Pass | Pass | Pass | Pass (GA) | **5 Pass** |
-| **Render** | Pass | Pass | Pass | Pass | Pass (GA) | **5 Pass** |
-| **Railway** | Pass | Pass | Pass | Pass | Pass (beta) | **5 Pass** |
-| Vercel | Pass | Pass | Pass | Pass | Pass (beta) | 5 Pass |
-| Netlify | Partial¹ | Pass | Pass | Pass | Pass (GA) | 4P / 1Pa |
-| Fly.io | Pass | Pass | Partial² | Partial³ | Partial⁴ | 2P / 3Pa |
+| Platform               | CLI-first | Managed/Serverless | Agent docs | Deploy API | MCP / Integration | Score      |
+| ---------------------- | --------- | ------------------ | ---------- | ---------- | ----------------- | ---------- |
+| **Cloudflare Workers** | Pass      | Pass               | Pass       | Pass       | Pass (GA)         | **5 Pass** |
+| **Render**             | Pass      | Pass               | Pass       | Pass       | Pass (GA)         | **5 Pass** |
+| **Railway**            | Pass      | Pass               | Pass       | Pass       | Pass (beta)       | **5 Pass** |
+| Vercel                 | Pass      | Pass               | Pass       | Pass       | Pass (beta)       | 5 Pass     |
+| Netlify                | Partial¹  | Pass               | Pass       | Pass       | Pass (GA)         | 4P / 1Pa   |
+| Fly.io                 | Pass      | Pass               | Partial²   | Partial³   | Partial⁴          | 2P / 3Pa   |
 
 ¹ Netlify rollback has no CLI command — needs the dashboard "Publish deploy" button.
 ² Fly publishes no `llms.txt` (community mirrors only).
@@ -55,9 +55,9 @@ The other persistent-Node PaaS. Railpack builder, good DX, full CLI loop (`up` /
 ### Devil's Advocate — Weaknesses
 
 1. **`workerd` is not Node.** `@astrojs/cloudflare` v13 runs on `workerd`. Any dependency reaching for `node:fs`, a native addon, or a Node API not exposed via `nodejs_compat` fails — often only at runtime on the deployed Worker, not in `astro dev`.
-2. **Supabase-from-the-edge is a moving part.** Connecting Workers to Supabase Postgres wants Hyperdrive, and the Supabase guide specifies the *direct* connection string, not the pooler. Misconfigure → connection exhaustion or latency.
+2. **Supabase-from-the-edge is a moving part.** Connecting Workers to Supabase Postgres wants Hyperdrive, and the Supabase guide specifies the _direct_ connection string, not the pooler. Misconfigure → connection exhaustion or latency.
 3. **The 24h invitation expiry (FR-008).** `tech-stack.md` already conceded the edge runtime doesn't carry scheduled work first-class and the plan is "lazy expiry on read." Cron Triggers (GA) exist but a Cron Trigger is a separate Worker invocation with its own constraints.
-4. **Pages → Workers mismatch.** `tech-stack.md` says `deployment_target: cloudflare-pages`, but adapter v13 *dropped Pages* — SSR now targets Workers. The "already scaffolded" advantage carries an asterisk.
+4. **Pages → Workers mismatch.** `tech-stack.md` says `deployment_target: cloudflare-pages`, but adapter v13 _dropped Pages_ — SSR now targets Workers. The "already scaffolded" advantage carries an asterisk.
 5. **Local-dev fidelity gap.** `astro dev` runs on Vite/Node; production runs on `workerd`. Runtime-gap bugs are invisible in the local loop unless dev is deliberately run against the Workers runtime (`wrangler dev`).
 
 ### Pre-Mortem — How This Could Fail
@@ -76,24 +76,28 @@ The team deployed Astro 6 SSR on Cloudflare Workers for AppiTata's MVP. Six mont
 
 - **Preview deploys**: branch builds via **Workers Builds** (GitHub-integrated — connect the repo, every PR gets its own `*.workers.dev` preview URL). Ad-hoc: `npx wrangler versions upload` creates an unattached version with a preview URL without promoting it. Preview environments need their own `SUPABASE_*` secrets — either share with prod (acceptable at MVP since traffic is private) or wire a staging Supabase project per `wrangler.jsonc` environment.
 - **Secrets**: `npx wrangler secret put SUPABASE_URL` and `npx wrangler secret put SUPABASE_KEY` — stored in Cloudflare's Workers Secrets vault, never in `wrangler.jsonc`. Local dev reads from `.dev.vars` (already in `.gitignore`). Read access: anyone with the Cloudflare account at the Worker scope. Rotation: re-run `wrangler secret put` (replaces on next deploy).
-- **Rollback**: `npx wrangler rollback` reverts to the immediately-prior version (interactive prompt); `npx wrangler rollback <VERSION_ID>` for a specific one. Typical time-to-revert: <30 s. **Caveat**: rolling back the Worker does *not* revert Supabase schema changes — DB migrations stay applied. Keep migrations forward-compatible, or have a manual revert script ready before each migration.
+- **Rollback**: `npx wrangler rollback` reverts to the immediately-prior version (interactive prompt); `npx wrangler rollback <VERSION_ID>` for a specific one. Typical time-to-revert: <30 s. **Caveat**: rolling back the Worker does _not_ revert Supabase schema changes — DB migrations stay applied. Keep migrations forward-compatible, or have a manual revert script ready before each migration.
 - **Approval (human-only)**: initial Cloudflare account + API-token setup, first `wrangler secret put` of each secret, rotating `SUPABASE_KEY`, anything destructive on Supabase (drop table, DROP DATABASE). **Agent may run unattended**: `wrangler deploy`, `wrangler tail`, `wrangler rollback` to a prior version, `wrangler versions upload`.
 - **Logs**: `npx wrangler tail` live-tails the Worker (filters: `--status`, `--method`, `--search`, `--sampling-rate`). Historical: Workers Logs in the Cloudflare dashboard or via the Observability MCP server (`https://observability.mcp.cloudflare.com/mcp`) for structured agent access — install with `claude mcp add cloudflare-observability --transport http https://observability.mcp.cloudflare.com/mcp` if log analysis becomes a recurring task.
+- **LIVE as of 2026-06-02**: first production deploy done — Worker `appitata` at https://appitata.przemomad55.workers.dev, Supabase project `vregbrvyjobeazpikypp` (all 6 migrations pushed). The **invitation-expiry cron sweep is confirmed live in production** (closes roadmap S-04 / plan step 2.7): observed two `scheduled` firings logging `expiry sweep: 0 invitation(s) expired` (verified via the E2 temp-`*/2`-cron method, then reverted to the daily `0 3 * * *`). Deploy command for this adapter: `npx wrangler deploy -c dist/server/wrangler.json` (the v13.5 adapter emits the deployable config there, not at `dist/wrangler.json`). Full runbook + checklist: `context/deployment/deploy-plan.md`. End-to-end auth confirmed: browser sign-up → (manual email confirm in dashboard) → sign-in → app access all work against prod.
+  - **Pre-launch debt (before onboarding real users):**
+    1. **Rotate the `service_role` key** — it was exposed in terminal output during secret setup and is not rotated. After rotating in Supabase (Settings → API), re-set `SUPABASE_KEY` + `SUPABASE_SERVICE_ROLE_KEY` on the Worker.
+    2. **Configure custom SMTP** — Supabase's default email service is test-only (heavily rate-limited, unreliable delivery). Confirmation emails did not arrive on the default provider; the test user was confirmed manually via the dashboard. Set up SMTP (Project Settings → Authentication → SMTP) so real users receive confirmation emails.
 
 ## Risk Register
 
 Each risk names the lens that surfaced it so the register is auditable.
 
-| Risk | Source | Likelihood | Impact | Mitigation |
-|---|---|---|---|---|
-| A future dependency uses `node:fs` / native addons / unsupported Node API and fails only on production Worker | Devil's advocate | M | M | Before adding a dep, run `npx wrangler dev` locally to exercise it on workerd; check the dep for `node:fs` / native imports; prefer Web-API-first libraries. |
-| Supabase via Hyperdrive misconfigured with the pooled connection string instead of the direct one | Pre-mortem · Unknown unknowns | M | H | Follow the Cloudflare Hyperdrive + Supabase guide exactly; use the *direct* connection string; verify under light load before merging the feature that needs Postgres. |
-| FR-008 "lazy expiry" leaks: never-opened invitations never expire | Pre-mortem | M | M | Add a Cron Trigger (GA, free-tier eligible) that sweeps expired invitations daily as a backstop to lazy expiry; keep the check idempotent. |
-| Foundation docs say "Pages," but the live deploy target is Workers — drift between `tech-stack.md` and reality | Devil's advocate | High (already true) | L | Update `tech-stack.md` `deployment_target` from `cloudflare-pages` to `cloudflare-workers` before the deploy plan is built. |
-| `astro dev` hides workerd-only bugs until production | Unknown unknowns | M | M | Run `npx wrangler dev` as a pre-deploy gate (manual or as a CI step before `wrangler deploy`). |
-| Per-request CPU budget (10 ms on free tier) exceeded by a heavy SSR render | Unknown unknowns | L | M | Profile the friends/meetings list rendering when the data set grows; if any page approaches 10 ms CPU, upgrade to the $5/mo Standard plan (much higher CPU ceiling). |
-| Worker rollback doesn't revert Supabase migrations | Research finding | M | H | Keep migrations forward-compatible (additive only); for any destructive migration, write a forward-compatible revert before merging. |
-| `wrangler login` requires browser — breaks unattended CI | Unknown unknowns | High (one-time) | L | Generate a scoped `CLOUDFLARE_API_TOKEN` ("Workers Scripts: Edit" + "User Details: Read") and set it as a GitHub Actions secret; never rely on `wrangler login` in CI. |
+| Risk                                                                                                           | Source                        | Likelihood          | Impact | Mitigation                                                                                                                                                             |
+| -------------------------------------------------------------------------------------------------------------- | ----------------------------- | ------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A future dependency uses `node:fs` / native addons / unsupported Node API and fails only on production Worker  | Devil's advocate              | M                   | M      | Before adding a dep, run `npx wrangler dev` locally to exercise it on workerd; check the dep for `node:fs` / native imports; prefer Web-API-first libraries.           |
+| Supabase via Hyperdrive misconfigured with the pooled connection string instead of the direct one              | Pre-mortem · Unknown unknowns | M                   | H      | Follow the Cloudflare Hyperdrive + Supabase guide exactly; use the _direct_ connection string; verify under light load before merging the feature that needs Postgres. |
+| FR-008 "lazy expiry" leaks: never-opened invitations never expire                                              | Pre-mortem                    | M                   | M      | Add a Cron Trigger (GA, free-tier eligible) that sweeps expired invitations daily as a backstop to lazy expiry; keep the check idempotent.                             |
+| Foundation docs say "Pages," but the live deploy target is Workers — drift between `tech-stack.md` and reality | Devil's advocate              | High (already true) | L      | Update `tech-stack.md` `deployment_target` from `cloudflare-pages` to `cloudflare-workers` before the deploy plan is built.                                            |
+| `astro dev` hides workerd-only bugs until production                                                           | Unknown unknowns              | M                   | M      | Run `npx wrangler dev` as a pre-deploy gate (manual or as a CI step before `wrangler deploy`).                                                                         |
+| Per-request CPU budget (10 ms on free tier) exceeded by a heavy SSR render                                     | Unknown unknowns              | L                   | M      | Profile the friends/meetings list rendering when the data set grows; if any page approaches 10 ms CPU, upgrade to the $5/mo Standard plan (much higher CPU ceiling).   |
+| Worker rollback doesn't revert Supabase migrations                                                             | Research finding              | M                   | H      | Keep migrations forward-compatible (additive only); for any destructive migration, write a forward-compatible revert before merging.                                   |
+| `wrangler login` requires browser — breaks unattended CI                                                       | Unknown unknowns              | High (one-time)     | L      | Generate a scoped `CLOUDFLARE_API_TOKEN` ("Workers Scripts: Edit" + "User Details: Read") and set it as a GitHub Actions secret; never rely on `wrangler login` in CI. |
 
 ## Getting Started
 
@@ -110,6 +114,7 @@ Pre-deploy discipline: run `npx wrangler dev` (not just `npm run dev`) at least 
 ## Out of Scope
 
 The following were not evaluated in this research:
+
 - Docker image configuration (Cloudflare Workers is serverless — no image)
 - CI/CD pipeline setup beyond noting the `CLOUDFLARE_API_TOKEN` requirement
 - Production-scale architecture (multi-region, HA, DR — MVP is single-region per the interview)

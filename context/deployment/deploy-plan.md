@@ -97,7 +97,7 @@ npx wrangler deploy
     schedule: 0 3 * * *
   ```
   Seeing `schedule: 0 3 * * *` **registers** the trigger — this alone satisfies the literal wording of plan step 2.7. Part E confirms it actually _fires_.
-- Troubleshooting: if wrangler can't find the entry, the adapter may have emitted a generated config under `dist/` — deploy with `npx wrangler deploy -c dist/wrangler.json` (the v13.5 vite-plugin wraps, not replaces, the root `main`).
+- **Confirmed 2026-06-02:** the v13.5 adapter emits the deployable config at **`dist/server/wrangler.json`** (main: `entry.mjs`, assets: `../client`, crons preserved), NOT `dist/wrangler.json`. The root `wrangler.jsonc` `main` points at the raw TS source, so deploy with the generated config: `npx wrangler deploy -c dist/server/wrangler.json`. The `scheduled` handler lands in `chunks/worker-entry_*.mjs`, re-exported as the Worker default.
 
 ---
 
@@ -159,12 +159,12 @@ Plan step 2.7 lives in the now-**archived** change `context/archive/2026-06-01-i
 
 **Deploy checklist:**
 
-- [ ] A — prod Supabase linked, `db push` applied, RPC+grants verified
-- [ ] C — all three Worker secrets set (`wrangler secret list` shows them)
-- [ ] D — `wrangler deploy` succeeded, output shows `schedule: 0 3 * * *`
-- [ ] E — cron firing observed (`expiry sweep: N invitation(s) expired` in `wrangler tail`)
-- [ ] F — home loads, auth works, `/dashboard` redirects when logged out
-- [ ] 2.7 closed — recorded in `infrastructure.md`
+- [x] A — prod Supabase linked (`vregbrvyjobeazpikypp`), `db push` applied (all 6 migrations), RPC+grants verified (`expire_stale_invitations` → EXECUTE: `postgres` + `service_role` only) — 2026-06-02
+- [x] C — all three Worker secrets set (`SUPABASE_URL`, `SUPABASE_KEY`, `SUPABASE_SERVICE_ROLE_KEY`) — 2026-06-02
+- [x] D — `wrangler deploy -c dist/server/wrangler.json` succeeded, output shows `schedule: 0 3 * * *` → https://appitata.przemomad55.workers.dev (Version `cbd28535`) — 2026-06-02
+- [x] E — cron firing observed via E2 (temp `*/2` cron): two `scheduled` events at 11:34:50 & 11:36:50 UTC logged `expiry sweep: 0 invitation(s) expired` (RPC succeeded → service_role key valid); schedule reverted to `0 3 * * *` (Version `708b1bbd`) — 2026-06-02
+- [x] F — home `200`, `/dashboard`→`/auth/signin` `302` (curl); browser sign-up reached "Check your email" → prod Supabase accepted signup + issued confirmation email (anon key + URL + auth wiring verified) — 2026-06-02
+- [x] 2.7 closed — cron sweep live in production, recorded in `infrastructure.md` — 2026-06-02
 
 ---
 
