@@ -270,26 +270,26 @@ The sweep is a single indexed UPDATE (`meeting_invitations_invitee_pending_idx` 
 
 #### Automated
 
-- [x] 2.1 Worker types generated (`npx wrangler types` → `worker-configuration.d.ts`, `Env` resolves)
-- [x] 2.2 Build succeeds with the custom entrypoint (`npm run build`)
-- [x] 2.3 Lint passes on touched files (`npx eslint src/worker.ts src/lib/supabase-admin.ts`)
-- [x] 2.4 Type checking passes after `wrangler types` (`npx astro check` / `tsc --noEmit`)
+- [x] 2.1 Worker types generated (`npx wrangler types` → `worker-configuration.d.ts`, `Env` resolves) — ea5cb54
+- [x] 2.2 Build succeeds with the custom entrypoint (`npm run build`) — ea5cb54
+- [x] 2.3 Lint passes on touched files (`npx eslint src/worker.ts src/lib/supabase-admin.ts`) — ea5cb54
+- [x] 2.4 Type checking passes after `wrangler types` (`npx astro check` / `tsc --noEmit`) — ea5cb54
 
 #### Manual
 
-- [x] 2.5 `wrangler dev` serves the app and `/dashboard` still redirects when logged out (middleware regression)
-- [x] 2.6 Local scheduled trigger runs the sweep, logs the count, and expires a seeded stale row
-- [ ] 2.7 `wrangler deploy` registers the daily cron trigger (human-initiated)
+- [x] 2.5 `wrangler dev` serves the app and `/dashboard` still redirects when logged out (middleware regression) — ea5cb54
+- [x] 2.6 Local scheduled trigger runs the sweep, logs the count, and expires a seeded stale row — ea5cb54
+- [x] 2.7 `wrangler deploy` registers the daily cron trigger (human-initiated) — ea5cb54
 
 ### Phase 3: Read-path guard (UI)
 
 #### Automated
 
-- [ ] 3.1 Lint passes on touched file (`npx eslint src/pages/meetings.astro`)
-- [ ] 3.2 Build succeeds (`npm run build`)
+- [x] 3.1 Lint passes on touched file (`npx eslint src/pages/meetings.astro`)
+- [x] 3.2 Build succeeds (`npm run build`)
 
 #### Manual
 
-- [ ] 3.3 Fresh pending invite shows in Pending; >24h-old one does not
-- [ ] 3.4 Accepting a >24h-old pending invite via API returns 404
-- [ ] 3.5 No regression: fresh pending invitations still show conflict warning
+- [x] 3.3 Fresh pending invite shows in Pending; >24h-old one does not
+- [x] 3.4 Accepting a >24h-old pending invite via API returns 404
+- [x] 3.5 No regression: fresh pending invitations still show conflict warning

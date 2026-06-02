@@ -47,8 +47,13 @@ if (!user) {
 
     const now = Date.now();
 
+    const freshnessCutoff = now - 24 * 60 * 60 * 1000;
+
     pendingInvitations = meetings.flatMap((m) => {
-      const inv = m.invitations.find((i) => i.invitee?.id === viewerId && i.status === "pending");
+      const inv = m.invitations.find(
+        (i) =>
+          i.invitee?.id === viewerId && i.status === "pending" && new Date(i.invited_at).getTime() > freshnessCutoff,
+      );
       return inv ? [{ invitation_id: inv.id, meeting: m }] : [];
     });
 
