@@ -279,7 +279,7 @@ The sweep is a single indexed UPDATE (`meeting_invitations_invitee_pending_idx` 
 
 - [x] 2.5 `wrangler dev` serves the app and `/dashboard` still redirects when logged out (middleware regression) — ea5cb54
 - [x] 2.6 Local scheduled trigger runs the sweep, logs the count, and expires a seeded stale row — ea5cb54
-- [x] 2.7 `wrangler deploy` registers the daily cron trigger (human-initiated) — ea5cb54
+- [ ] 2.7 `wrangler deploy` registers the daily cron trigger — blocked on human-only deploy (see change.md note); not yet run
 
 ### Phase 3: Read-path guard (UI)
 
