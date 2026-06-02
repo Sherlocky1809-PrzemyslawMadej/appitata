@@ -285,11 +285,11 @@ The sweep is a single indexed UPDATE (`meeting_invitations_invitee_pending_idx` 
 
 #### Automated
 
-- [x] 3.1 Lint passes on touched file (`npx eslint src/pages/meetings.astro`)
-- [x] 3.2 Build succeeds (`npm run build`)
+- [x] 3.1 Lint passes on touched file (`npx eslint src/pages/meetings.astro`) — b69800f
+- [x] 3.2 Build succeeds (`npm run build`) — b69800f
 
 #### Manual
 
-- [x] 3.3 Fresh pending invite shows in Pending; >24h-old one does not
-- [x] 3.4 Accepting a >24h-old pending invite via API returns 404
-- [x] 3.5 No regression: fresh pending invitations still show conflict warning
+- [x] 3.3 Fresh pending invite shows in Pending; >24h-old one does not — b69800f
+- [x] 3.4 Accepting a >24h-old pending invite via API returns 404 — b69800f
+- [x] 3.5 No regression: fresh pending invitations still show conflict warning — b69800f
