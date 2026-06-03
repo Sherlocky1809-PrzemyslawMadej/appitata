@@ -295,28 +295,28 @@ Negligible — a handful of integration tests against a local stack. Keep fixtur
 
 #### Automated
 
-- [x] 1.1 `npm test` exits 0 with the smoke test passing
-- [x] 1.2 Lint passes on touched files (`npx eslint vitest.config.ts tests/`)
-- [x] 1.3 Suite imports no `astro:env` module (no virtual-module resolution error)
+- [x] 1.1 `npm test` exits 0 with the smoke test passing — 6297052
+- [x] 1.2 Lint passes on touched files (`npx eslint vitest.config.ts tests/`) — 6297052
+- [x] 1.3 Suite imports no `astro:env` module (no virtual-module resolution error) — 6297052
 
 #### Manual
 
-- [x] 1.4 `npm run db:reset` then `npm test` green from a clean local stack
-- [x] 1.5 `.env.test` is gitignored and `.env.example` documents the three keys
+- [x] 1.4 `npm run db:reset` then `npm test` green from a clean local stack — 6297052
+- [x] 1.5 `.env.test` is gitignored and `.env.example` documents the three keys — 6297052
 
 ### Phase 2: Fixture extension & auth enablement
 
 #### Automated
 
-- [ ] 2.1 `npm test` green including the auth test
-- [ ] 2.2 Both identities authenticate and resolve to distinct expected UUIDs
-- [ ] 2.3 Lint passes on touched files (`npx eslint tests/`)
+- [x] 2.1 `npm test` green including the auth test
+- [x] 2.2 Both identities authenticate and resolve to distinct expected UUIDs
+- [x] 2.3 Lint passes on touched files (`npx eslint tests/`)
 
 #### Manual
 
-- [ ] 2.4 Every block in all three `*-rls.md` docs produces its updated expected result from a clean `db:reset`
-- [ ] 2.5 `friend-connections-rls.md` Block 2 impersonates Dave and still returns 0 rows
-- [ ] 2.6 Seed remains idempotent across repeated `db:reset`
+- [x] 2.4 Every block in all three `*-rls.md` docs produces its updated expected result from a clean `db:reset`
+- [x] 2.5 `friend-connections-rls.md` Block 2 impersonates Dave and still returns 0 rows
+- [x] 2.6 Seed remains idempotent across repeated `db:reset`
 
 ### Phase 3: Privacy-isolation suite & cookbook
 

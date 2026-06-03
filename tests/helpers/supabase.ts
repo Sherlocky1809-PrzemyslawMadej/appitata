@@ -38,3 +38,36 @@ export function serviceClient(): SupabaseClient<Database> {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 }
+
+/**
+ * Sign in as a seeded test identity and return the authenticated client.
+ *
+ * Builds a fresh anon client, calls `signInWithPassword`, and asserts the
+ * session resolves to a non-null user id — the FIRST line of defence against
+ * the silent-pass trap (a query run without a real identity makes every RLS
+ * policy branch false and returns zero rows, indistinguishable from correct
+ * isolation). Throws loudly on any auth error so a broken login can never
+ * masquerade as an empty isolation result.
+ *
+ * @returns `{ client, userId }` — the RLS-scoped client plus the resolved id,
+ *          so callers can assert the impersonated identity before trusting any
+ *          zero-row count.
+ */
+export async function signInAs(
+  email: string,
+  password: string,
+): Promise<{ client: SupabaseClient<Database>; userId: string }> {
+  const client = anonClient();
+  const { data, error } = await client.auth.signInWithPassword({ email, password });
+  if (error) {
+    throw new Error(`signInAs(${email}) failed: ${error.message}`);
+  }
+  // After the `error` ladder above, supabase-js narrows `data.user` to non-null
+  // on a successful password sign-in — so no optional chain here. The `!userId`
+  // guard still catches the degenerate empty-string id (the silent-pass trap).
+  const userId = data.user.id;
+  if (!userId) {
+    throw new Error(`signInAs(${email}) returned no user id — session did not resolve to an identity`);
+  }
+  return { client, userId };
+}

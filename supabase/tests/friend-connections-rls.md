@@ -2,28 +2,32 @@
 
 Six copy-pasteable SQL blocks that prove the `friend_connections` RLS surface holds end-to-end after S-01. Run each in Supabase Studio (`http://127.0.0.1:54323` → SQL editor) after `npm run db:reset`. Each block is wrapped in `begin; ... rollback;` so the local DB stays clean.
 
-The seed fixture (`supabase/seed.sql`) provides one accepted FC between Alice and Bob:
+The seed fixture (`supabase/seed.sql`) now seeds four parents, one accepted FC (Alice → Bob), and one pending FC (Alice → Carol):
 
 - **Alice** — `00000000-0000-0000-0000-000000000a01`
 - **Bob** — `00000000-0000-0000-0000-000000000b01`
-- **Carol** (third-party UUID, no fixture row) — `00000000-0000-0000-0000-000000000c01`
-- **Dave** (fourth-party UUID, no fixture row) — `00000000-0000-0000-0000-000000000d01`
+- **Carol** (seeded parent; pending FC with Alice) — `00000000-0000-0000-0000-000000000c01`
+- **Dave** (seeded parent; **no** FC with anyone — the true outsider) — `00000000-0000-0000-0000-000000000d01`
 
-Blocks 5 and 6 INSERT a third parent (Carol) and a pending FC (Alice → Carol) inline so the pending-state policies can be exercised against fresh state without polluting subsequent runs.
+> **What changed in Phase 2 of `testing-privacy-rls-isolation`.** Carol and Dave are now seeded parents and the Alice → Carol pending FC is part of the seed. Two consequences below: Alice's FC count (Block 1) moves 1 → 2 (accepted Bob + pending Carol), and the "outsider sees 0 FC" check (Block 2) **must impersonate Dave** — Carol is no longer uninvolved, since she is the addressee of Alice's pending FC.
+
+Blocks 5 and 6 still INSERT Carol + the pending Alice → Carol FC inline; those inserts are now idempotent no-ops against the seed (`on conflict … do nothing`), so the blocks behave identically whether or not the seed already provided them.
 
 > **`set local role` + `set local request.jwt.claims` pairing.** Same rule as `parents-rls.md`: `set local role authenticated` switches the role so RLS applies; the claims line is what makes `auth.uid()` return the impersonated UUID. Both are required.
 
-## 1. Both sides see the FC row — expect 1 row each
+## 1. Both sides see their FC rows — expect Alice 2, Bob 1
+
+Alice is party to two FCs (accepted Bob + pending Carol); Bob to one (accepted Alice).
 
 ```sql
--- Alice
+-- Alice → expect 2 rows (accepted Alice→Bob + pending Alice→Carol)
 begin;
   set local role authenticated;
   set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-000000000a01"}';
   select id, requester_id, addressee_id, status from public.friend_connections;
 rollback;
 
--- Bob
+-- Bob → expect 1 row (accepted Alice→Bob)
 begin;
   set local role authenticated;
   set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-000000000b01"}';
@@ -33,12 +37,12 @@ rollback;
 
 ## 2. Outsider blindness — expect 0 rows
 
-A parent uninvolved in the FC sees nothing:
+A parent uninvolved in any FC sees nothing. **Dave** (`…d01`) is the true outsider now that Carol is the addressee of Alice's pending FC:
 
 ```sql
 begin;
   set local role authenticated;
-  set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-000000000c01"}';
+  set local request.jwt.claims to '{"sub": "00000000-0000-0000-0000-000000000d01"}';
   select id, requester_id, addressee_id, status from public.friend_connections;
 rollback;
 ```

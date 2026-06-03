@@ -2,11 +2,13 @@
 
 Eight copy-pasteable SQL blocks that prove the meetings + meeting_invitations RLS surface — including the cross-table SELECT model and the atomic-create RPC's validation — holds end-to-end after S-02. Run each in Supabase Studio (`http://127.0.0.1:54323` → SQL editor) after `npm run db:reset`. Every block is wrapped in `begin; ... rollback;` so the local DB stays clean.
 
-The seed fixture (`supabase/seed.sql`) provides one accepted FC between Alice and Bob:
+The seed fixture (`supabase/seed.sql`) seeds four parents, an accepted FC (Alice → Bob), and a pending FC (Alice → Carol):
 
 - **Alice** — `00000000-0000-0000-0000-000000000a01`
 - **Bob** — `00000000-0000-0000-0000-000000000b01`
-- **Dave** (uninvolved UUID, no fixture row, no FC with Alice) — `00000000-0000-0000-0000-000000000d01`
+- **Dave** (seeded parent; **no** FC with Alice, holds no meetings/invitations) — `00000000-0000-0000-0000-000000000d01`
+
+> **Phase 2 note (`testing-privacy-rls-isolation`).** Dave is now a seeded parent (was an inline-only UUID), but he still holds no meetings, no invitations, and no FC with Alice — so every cross-table count below is **unchanged** (creator 1 / invitee 1 / uninvolved 0), and the RPC's unconnected-invitee rejection (Block 5) still fires for Dave. Carol (pending FC with Alice) is irrelevant to the meetings surface and appears in no block here.
 
 > **`set local role` + `set local request.jwt.claims` pairing.** Same rule as `parents-rls.md` and `friend-connections-rls.md`: `set local role authenticated` switches the role so RLS applies; the claims line is what makes `auth.uid()` return the impersonated UUID. Both are required.
 
