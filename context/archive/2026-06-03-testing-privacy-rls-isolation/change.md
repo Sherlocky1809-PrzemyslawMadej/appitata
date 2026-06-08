@@ -1,10 +1,10 @@
 ---
 change_id: testing-privacy-rls-isolation
 title: Testing privacy RLS isolation
-status: impl_reviewed
+status: archived
 created: 2026-06-03
 updated: 2026-06-08
-archived_at: null
+archived_at: 2026-06-08T06:08:37Z
 ---
 
 ## Notes
