@@ -2,8 +2,11 @@ import { afterAll, beforeAll, describe, it, expect } from "vitest";
 import { serviceClient, signInAs } from "../helpers/supabase";
 
 /**
- * Cross-table meetings + invitations isolation (Risk #1 read path, Risk #2
- * cross-table visibility).
+ * Cross-table meetings + invitations READ isolation — test-plan Risk #1 and
+ * Risk #2's read path (cross-table visibility). NOTE: this file covers reads
+ * only; the "no silent double-booking" invariant (AGENTS.md load-bearing
+ * invariant #2 / conflict-overlap) is NOT tested here — it is deferred to
+ * test-plan §3 Phase 3.
  *
  * `meetings_select` and `meeting_invitations_select` reference each other and
  * route through two SECURITY DEFINER helpers (`user_is_meeting_invitee` /
@@ -66,8 +69,12 @@ beforeAll(async () => {
 afterAll(async () => {
   if (!meetingId) return;
   // DELETE cascades to meeting_invitations via the FK. Service client bypasses
-  // RLS so cleanup never depends on the policy under test.
-  await serviceClient().from("meetings").delete().eq("id", meetingId);
+  // RLS so cleanup never depends on the policy under test. Surface a failed
+  // teardown loudly — a silently-leaked fixture row would corrupt later runs.
+  const { error } = await serviceClient().from("meetings").delete().eq("id", meetingId);
+  // Intentional teardown diagnostic: a leaked fixture row must be visible.
+  // eslint-disable-next-line no-console
+  if (error) console.warn(`meetings-isolation teardown failed to delete ${meetingId}: ${error.message}`);
 });
 
 describe("meeting cross-table visibility (creator / invitee / uninvolved)", () => {

@@ -18,6 +18,10 @@ export default defineConfig(({ mode }) => {
     test: {
       environment: "node",
       include: ["tests/**/*.test.ts"],
+      // Integration tests share one local Supabase DB; the meetings fixture
+      // mutates rows in beforeAll/afterAll. Run test files serially so a
+      // future unfiltered-count assertion can't race a parallel file's fixture.
+      fileParallelism: false,
       env,
     },
   };
