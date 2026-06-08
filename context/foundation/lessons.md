@@ -15,3 +15,10 @@
 - **Problem**: There is no shared source for the window. The three encodings agree today (all exclusive boundaries), but a future change to the expiry duration must update all three in lockstep. Miss one and the layers silently disagree — e.g. the UI hides an invite the DB still accepts, or the sweep expires rows the read filter still shows.
 - **Rule**: When changing the invitation-expiry window, update all three encodings together (sweep RPC, RLS USING clause, meetings.astro read filter) and keep the boundary direction consistent (sweep uses `<`, accept/read use `>`). Treat them as one coupled invariant, not three separate literals.
 - **Applies to**: implement, impl-review, plan
+
+## Seed loginable auth.users with empty-string token columns, not NULL
+
+- **Context**: Any `supabase/seed.sql` (or migration) that inserts `auth.users` rows intended to log in via `signInWithPassword` — e.g. test/fixture identities for the integration suite.
+- **Problem**: Raw `auth.users` inserts leave GoTrue's token columns (`confirmation_token`, `recovery_token`, `email_change`, `email_change_token_new`, `email_change_token_current`, `phone_change`, `phone_change_token`, `reauthentication_token`) NULL. GoTrue scans those character columns into Go strings on login and fails NULL→string with `Database error querying schema`. Service_role reads bypass GoTrue, so smoke tests pass and hide the break — only HTTP login surfaces it (cost a debugging cycle in testing-privacy-rls-isolation Phase 2).
+- **Rule**: When seeding an `auth.users` row that must authenticate by password, stamp `encrypted_password` AND coalesce every GoTrue token column to `''` (e.g. `set confirmation_token = coalesce(confirmation_token,''), …`) in the same statement. Never leave token columns NULL on a loginable user. Verify with an actual `signInWithPassword`, not just a service_role read.
+- **Applies to**: implement, research, plan

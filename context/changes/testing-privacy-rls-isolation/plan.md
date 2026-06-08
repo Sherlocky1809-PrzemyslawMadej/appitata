@@ -308,26 +308,26 @@ Negligible — a handful of integration tests against a local stack. Keep fixtur
 
 #### Automated
 
-- [x] 2.1 `npm test` green including the auth test
-- [x] 2.2 Both identities authenticate and resolve to distinct expected UUIDs
-- [x] 2.3 Lint passes on touched files (`npx eslint tests/`)
+- [x] 2.1 `npm test` green including the auth test — 5162e9c
+- [x] 2.2 Both identities authenticate and resolve to distinct expected UUIDs — 5162e9c
+- [x] 2.3 Lint passes on touched files (`npx eslint tests/`) — 5162e9c
 
 #### Manual
 
-- [x] 2.4 Every block in all three `*-rls.md` docs produces its updated expected result from a clean `db:reset`
-- [x] 2.5 `friend-connections-rls.md` Block 2 impersonates Dave and still returns 0 rows
-- [x] 2.6 Seed remains idempotent across repeated `db:reset`
+- [x] 2.4 Every block in all three `*-rls.md` docs produces its updated expected result from a clean `db:reset` — 5162e9c
+- [x] 2.5 `friend-connections-rls.md` Block 2 impersonates Dave and still returns 0 rows — 5162e9c
+- [x] 2.6 Seed remains idempotent across repeated `db:reset` — 5162e9c
 
 ### Phase 3: Privacy-isolation suite & cookbook
 
 #### Automated
 
-- [ ] 3.1 `npm test` green with all isolation + negative-control tests passing
-- [ ] 3.2 Cross-table meeting/invitation SELECTs return without error for creator and invitee
-- [ ] 3.3 Lint passes on touched files (`npx eslint tests/`)
+- [x] 3.1 `npm test` green with all isolation + negative-control tests passing
+- [x] 3.2 Cross-table meeting/invitation SELECTs return without error for creator and invitee
+- [x] 3.3 Lint passes on touched files (`npx eslint tests/`)
 
 #### Manual
 
-- [ ] 3.4 The unconnected (Dave) assertion turns red if the identity guard is removed
-- [ ] 3.5 `test-plan.md` §6.2 / §6.5 are actionable recipes and §3 Phase 1 is marked `complete`
-- [ ] 3.6 A reviewer can follow §6.2 to add a new RLS integration test without re-reading this plan
+- [x] 3.4 The unconnected (Dave) assertion turns red if the identity guard is removed
+- [x] 3.5 `test-plan.md` §6.2 / §6.5 are actionable recipes and §3 Phase 1 is marked `complete`
+- [x] 3.6 A reviewer can follow §6.2 to add a new RLS integration test without re-reading this plan
