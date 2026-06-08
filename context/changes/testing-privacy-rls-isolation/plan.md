@@ -322,12 +322,12 @@ Negligible — a handful of integration tests against a local stack. Keep fixtur
 
 #### Automated
 
-- [x] 3.1 `npm test` green with all isolation + negative-control tests passing
-- [x] 3.2 Cross-table meeting/invitation SELECTs return without error for creator and invitee
-- [x] 3.3 Lint passes on touched files (`npx eslint tests/`)
+- [x] 3.1 `npm test` green with all isolation + negative-control tests passing — 3652d77
+- [x] 3.2 Cross-table meeting/invitation SELECTs return without error for creator and invitee — 3652d77
+- [x] 3.3 Lint passes on touched files (`npx eslint tests/`) — 3652d77
 
 #### Manual
 
-- [x] 3.4 The unconnected (Dave) assertion turns red if the identity guard is removed
-- [x] 3.5 `test-plan.md` §6.2 / §6.5 are actionable recipes and §3 Phase 1 is marked `complete`
-- [x] 3.6 A reviewer can follow §6.2 to add a new RLS integration test without re-reading this plan
+- [x] 3.4 The unconnected (Dave) assertion turns red if the identity guard is removed — 3652d77
+- [x] 3.5 `test-plan.md` §6.2 / §6.5 are actionable recipes and §3 Phase 1 is marked `complete` — 3652d77
+- [x] 3.6 A reviewer can follow §6.2 to add a new RLS integration test without re-reading this plan — 3652d77
