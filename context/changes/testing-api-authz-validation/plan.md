@@ -324,31 +324,31 @@ Capture the reusable recipe and finalize the phase's documentation so the next c
 
 #### Automated
 
-- [x] 2.1 Type checking passes: `npm run typecheck`
-- [x] 2.2 Linting passes on `authz.test.ts`
-- [x] 2.3 `npm test` runs the authz suite green
-- [x] 2.4 Each deny case has a paired authenticated allow/owner-success control (no lone 404)
-- [x] 2.5 Fixture teardown leaves zero residual rows (serviceClient count of fixture ids = 0)
+- [x] 2.1 Type checking passes: `npm run typecheck` — 4a6e5bc
+- [x] 2.2 Linting passes on `authz.test.ts` — 4a6e5bc
+- [x] 2.3 `npm test` runs the authz suite green — 4a6e5bc
+- [x] 2.4 Each deny case has a paired authenticated allow/owner-success control (no lone 404) — 4a6e5bc
+- [x] 2.5 Fixture teardown leaves zero residual rows (serviceClient count of fixture ids = 0) — 4a6e5bc
 
 #### Manual
 
-- [x] 2.6 Non-connected-invitee 403 and non-owner 404 are distinguishable in test output
-- [x] 2.7 Suite is idempotent across two consecutive runs
+- [x] 2.6 Non-connected-invitee 403 and non-owner 404 are distinguishable in test output — 4a6e5bc
+- [x] 2.7 Suite is idempotent across two consecutive runs — 4a6e5bc
 
 ### Phase 3: Validation + error-mapping tests (Risk #4)
 
 #### Automated
 
-- [ ] 3.1 Type checking passes: `npm run typecheck`
-- [ ] 3.2 Linting passes on `validation.test.ts`
-- [ ] 3.3 `npm test` runs the validation suite green
-- [ ] 3.4 meetings error-mapper test asserts the message-path body AND no raw DB text in any mapped error
-- [ ] 3.5 No test pins a per-route divergent zod error string (convention self-check)
+- [x] 3.1 Type checking passes: `npm run typecheck`
+- [x] 3.2 Linting passes on `validation.test.ts`
+- [x] 3.3 `npm test` runs the validation suite green
+- [x] 3.4 meetings error-mapper test asserts the message-path body AND no raw DB text in any mapped error
+- [x] 3.5 No test pins a per-route divergent zod error string (convention self-check)
 
 #### Manual
 
-- [ ] 3.6 Rewording one RPC `raise` message keeps the F1-guard test green via SQLSTATE fallback (then reverted)
-- [ ] 3.7 Mapped-error bodies contain no SQLSTATE / constraint / relation text
+- [x] 3.6 Rewording one RPC `raise` message keeps the F1-guard test green via SQLSTATE fallback (then reverted)
+- [x] 3.7 Mapped-error bodies contain no SQLSTATE / constraint / relation text
 
 ### Phase 4: Cookbook + close-out
 

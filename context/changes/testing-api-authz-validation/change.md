@@ -3,7 +3,7 @@ change_id: testing-api-authz-validation
 title: Testing api authz validation
 status: implementing
 created: 2026-06-08
-updated: 2026-06-08
+updated: 2026-06-09
 archived_at: null
 ---
 
