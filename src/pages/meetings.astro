@@ -5,6 +5,7 @@ import MeetingCreateForm from "@/components/meetings/MeetingCreateForm";
 import MeetingsList from "@/components/meetings/MeetingsList";
 import PendingInvitationsList from "@/components/meetings/PendingInvitationsList";
 import type { ClashingMeetingSummary, MeetingRow, PendingInvitation } from "@/components/meetings/types";
+import { computeConflictsByInvitationId, endsAt } from "@/lib/conflicts";
 
 // Middleware guarantees `user` is non-null on this protected route — see src/middleware.ts.
 const user = Astro.locals.user;
@@ -19,10 +20,6 @@ let loadError: string | null = null;
 const viewerId = user?.id ?? "";
 
 const supabase = user ? createClient(Astro.request.headers, Astro.cookies) : null;
-
-function endsAt(m: { starts_at: string; duration_minutes: number }): number {
-  return new Date(m.starts_at).getTime() + m.duration_minutes * 60_000;
-}
 
 if (!user) {
   loadError = "Not signed in";
@@ -68,21 +65,7 @@ if (!user) {
       .slice()
       .sort((a, b) => new Date(b.starts_at).getTime() - new Date(a.starts_at).getTime());
 
-    conflictsByInvitationId = Object.fromEntries(
-      pendingInvitations.map((pi) => {
-        const piStart = new Date(pi.meeting.starts_at).getTime();
-        const piEnd = endsAt(pi.meeting);
-        const clashes: ClashingMeetingSummary[] = myScheduleForConflicts
-          .filter((m) => m.id !== pi.meeting.id)
-          .filter((m) => {
-            const mStart = new Date(m.starts_at).getTime();
-            const mEnd = endsAt(m);
-            return mStart < piEnd && mEnd > piStart;
-          })
-          .map((m) => ({ id: m.id, starts_at: m.starts_at, duration_minutes: m.duration_minutes }));
-        return [pi.invitation_id, clashes];
-      }),
-    );
+    conflictsByInvitationId = computeConflictsByInvitationId(pendingInvitations, myScheduleForConflicts);
   }
 }
 ---
