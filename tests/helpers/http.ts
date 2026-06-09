@@ -55,6 +55,13 @@ function makeJar(cookie: string): Jar {
   const jarFetch = (path: string, init: RequestInit = {}): Promise<Response> => {
     const headers = new Headers(init.headers);
     if (cookie) headers.set("Cookie", cookie);
+    // Same-origin `Origin` header, as a real browser `fetch` always sends on a
+    // non-GET request. Astro's CSRF middleware 403s any non-safe method whose
+    // `origin` doesn't match the server's when there's no form content-type —
+    // notably a body-less DELETE. Without this, every DELETE would 403 before
+    // reaching the route (and an anon DELETE's real 401 would be masked). JSON
+    // POSTs are CSRF-exempt, so the Phase-1 smoke test never exercised this.
+    if (!headers.has("Origin")) headers.set("Origin", BASE_URL);
     // `redirect: "manual"` so a 302 (e.g. a middleware redirect) is observable as
     // a status rather than silently followed — API routes return JSON, but this
     // keeps the contract honest for any route that redirects.

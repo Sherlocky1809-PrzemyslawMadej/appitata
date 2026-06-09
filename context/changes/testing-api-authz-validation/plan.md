@@ -309,31 +309,31 @@ Capture the reusable recipe and finalize the phase's documentation so the next c
 
 #### Automated
 
-- [x] 1.1 Type checking passes: `npm run typecheck`
-- [x] 1.2 Linting passes on touched files (`tests/setup/server.ts`, `tests/helpers/http.ts`, `harness.smoke.test.ts`)
-- [x] 1.3 `npm test` builds, starts server, runs smoke test green, tears server down (no orphaned process)
-- [x] 1.4 Existing Phase 1 suite still passes under the new globalSetup
+- [x] 1.1 Type checking passes: `npm run typecheck` — c970f02
+- [x] 1.2 Linting passes on touched files (`tests/setup/server.ts`, `tests/helpers/http.ts`, `harness.smoke.test.ts`) — c970f02
+- [x] 1.3 `npm test` builds, starts server, runs smoke test green, tears server down (no orphaned process) — c970f02
+- [x] 1.4 Existing Phase 1 suite still passes under the new globalSetup — c970f02
 
 #### Manual
 
-- [x] 1.5 Cold `npm test` is self-contained (no manual server start)
-- [x] 1.6 Wrong password in `signInOverHttp` fails loudly (no silent anonymous jar)
-- [x] 1.7 Readiness poll tolerates workerd first-compile without flaking (2–3 consecutive runs)
+- [x] 1.5 Cold `npm test` is self-contained (no manual server start) — c970f02
+- [x] 1.6 Wrong password in `signInOverHttp` fails loudly (no silent anonymous jar) — c970f02
+- [x] 1.7 Readiness poll tolerates workerd first-compile without flaking (2–3 consecutive runs) — c970f02
 
 ### Phase 2: Authorization / IDOR tests (Risk #2)
 
 #### Automated
 
-- [ ] 2.1 Type checking passes: `npm run typecheck`
-- [ ] 2.2 Linting passes on `authz.test.ts`
-- [ ] 2.3 `npm test` runs the authz suite green
-- [ ] 2.4 Each deny case has a paired authenticated allow/owner-success control (no lone 404)
-- [ ] 2.5 Fixture teardown leaves zero residual rows (serviceClient count of fixture ids = 0)
+- [x] 2.1 Type checking passes: `npm run typecheck`
+- [x] 2.2 Linting passes on `authz.test.ts`
+- [x] 2.3 `npm test` runs the authz suite green
+- [x] 2.4 Each deny case has a paired authenticated allow/owner-success control (no lone 404)
+- [x] 2.5 Fixture teardown leaves zero residual rows (serviceClient count of fixture ids = 0)
 
 #### Manual
 
-- [ ] 2.6 Non-connected-invitee 403 and non-owner 404 are distinguishable in test output
-- [ ] 2.7 Suite is idempotent across two consecutive runs
+- [x] 2.6 Non-connected-invitee 403 and non-owner 404 are distinguishable in test output
+- [x] 2.7 Suite is idempotent across two consecutive runs
 
 ### Phase 3: Validation + error-mapping tests (Risk #4)
 
