@@ -148,6 +148,14 @@ describe("IDOR: DELETE /api/meetings/[id]", () => {
   });
 });
 
+// ORDER-DEPENDENT BLOCK: these `it`s share one pending invitation (m1InvitationId)
+// and must run top-to-bottom. The non-invitee deny cases (Carol/Dave → 404) rely on
+// the invitation still being `pending`; Bob's accept then permanently flips it to
+// `accepted`, which is the precondition for the one-shot 404 below. Vitest runs
+// in-file tests in declaration order and fileParallelism is off, so this holds — but
+// do NOT reorder, add `.only`, or mark these `concurrent`, or the deny cases would
+// silently 404 for the wrong reason. To make a case order-independent, seed it its
+// own invitation.
 describe("IDOR: POST /api/meetings/invitations/respond", () => {
   it("Carol (non-invitee) → 404", async () => {
     await assertAuthenticated(carol, "Carol");

@@ -29,6 +29,10 @@ const BASE_URL = process.env.TEST_BASE_URL ?? "http://localhost:4321";
 const READY_URL = `${BASE_URL}/auth/signin`;
 const READY_TIMEOUT_MS = 120_000;
 const POLL_INTERVAL_MS = 1_000;
+// After killing the server we confirm the port actually freed within this window —
+// a swallowed kill failure would otherwise let the next run's reuse hatch bind to
+// the stale server and silently test an old build.
+const SHUTDOWN_TIMEOUT_MS = 10_000;
 
 async function isReachable(url: string): Promise<boolean> {
   try {
@@ -62,7 +66,7 @@ async function waitForReady(url: string, timeoutMs: number): Promise<void> {
   throw new Error(`Server at ${url} not ready within ${timeoutMs}ms — is the build serving and local Supabase up?`);
 }
 
-function teardown(server: ChildProcess): void {
+function killTree(server: ChildProcess): void {
   if (server.pid == null) return;
   if (process.platform === "win32") {
     // `astro preview` spawns wrangler → workerd; kill the whole tree, not just
@@ -77,9 +81,25 @@ function teardown(server: ChildProcess): void {
   }
 }
 
-export default async function globalSetup(): Promise<() => void> {
+async function teardown(server: ChildProcess): Promise<void> {
+  killTree(server);
+  // The kill is best-effort (taskkill is fire-and-forget; a detached grandchild can
+  // survive), so don't trust it — poll until the port stops responding and fail
+  // loudly if it doesn't, rather than let the reuse hatch serve a stale build.
+  const deadline = Date.now() + SHUTDOWN_TIMEOUT_MS;
+  while (Date.now() < deadline) {
+    if (!(await isReachable(READY_URL))) return;
+    await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
+  }
+  throw new Error(
+    `Server at ${READY_URL} still responding ${SHUTDOWN_TIMEOUT_MS}ms after kill — ` +
+      `the port may be held by a detached process; the next run could serve a stale build.`,
+  );
+}
+
+export default async function globalSetup(): Promise<() => Promise<void>> {
   if (await isReachable(READY_URL)) {
-    return () => {
+    return async () => {
       // Reuse an already-running server; we don't own it, so teardown is a no-op.
     };
   }
@@ -97,11 +117,11 @@ export default async function globalSetup(): Promise<() => void> {
   try {
     await waitForReady(READY_URL, READY_TIMEOUT_MS);
   } catch (err) {
-    teardown(server);
+    await teardown(server);
     throw err;
   }
 
-  return () => {
-    teardown(server);
+  return async () => {
+    await teardown(server);
   };
 }

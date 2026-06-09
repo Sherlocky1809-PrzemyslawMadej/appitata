@@ -280,7 +280,10 @@ policy or definer under test:
   silently 404s everywhere would otherwise "pass". (3) **Build before serve.**
   `astro preview` serves the last `astro build`; globalSetup must build first and
   poll a real route (not just TCP) for readiness, or it serves stale/uncompiled
-  routes.
+  routes. **Caution:** the preview subprocess inherits stderr (so startup failures
+  surface), and workerd reads `.dev.vars` incl. `SUPABASE_SERVICE_ROLE_KEY` — on a
+  startup error that console output could contain bound secrets, so never paste a
+  raw `npm test` log into a shared issue / CI artifact without scrubbing.
 - **Known latent leak: unmapped `23503` → raw-500 in `POST /api/meetings`.**
   `meetings/index.ts` maps `23505`/`23514`/`42501`/`22023` but not `23503` (FK
   violation), so a parent deleted mid-transaction would fall through to the raw-500
