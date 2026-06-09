@@ -6,7 +6,7 @@
 >
 > Refresh: re-run `/10x-test-plan --refresh` when stale (see §8).
 >
-> Last updated: 2026-06-02 (Phase 1 change opened)
+> Last updated: 2026-06-09 (Phase 2 complete)
 
 ## 1. Strategy
 
@@ -70,7 +70,7 @@ orchestrator updates Status as artifacts appear on disk.
 | #   | Phase name                                               | Goal (one line)                                                                                            | Risks covered      | Test types                 | Status      | Change folder                                  |
 | --- | -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ------------------ | -------------------------- | ----------- | ---------------------------------------------- |
 | 1   | Test-runner bootstrap + privacy-boundary RLS isolation   | Stand up the runner on the highest risk and prove cross-circle reads return nothing                        | #1, #2 (read path) | integration                | complete    | context/changes/testing-privacy-rls-isolation/ |
-| 2   | API authorization + input-validation contract            | Prove endpoints reject non-owners, non-connected invites, and malformed payloads with the correct status   | #2, #4             | integration                | not started | —                                              |
+| 2   | API authorization + input-validation contract            | Prove endpoints reject non-owners, non-connected invites, and malformed payloads with the correct status   | #2, #4             | integration                | complete    | context/changes/testing-api-authz-validation/  |
 | 3   | Conflict-overlap & 24h expiry logic                      | Prove a clash surfaces before confirm and a stale invitation expires                                       | #3, #5             | unit + integration         | not started | —                                              |
 | 4   | Secret isolation + quality-gates wiring + north-star e2e | Lock the floor: key-isolation check, CI gates, one e2e of the full co-care flow incl. the conflict warning | #6, cross-cutting  | static check + gates + e2e | not started | —                                              |
 
@@ -170,7 +170,59 @@ mocked client (a mock proves nothing about a policy).
 
 ### 6.4 Adding a test for a new API endpoint
 
-- TBD — see §3 Phase 2 (authorization + zod-validation contract; exercise the route as two distinct authenticated users, assert status + side-effects, mock only the external edge).
+API-route tests exercise the **real HTTP path** — a running SSR server, real
+cookie-authenticated users over `fetch`, RLS actually on. They never import a
+route handler (the handler imports `astro:env/server`, a virtual module that only
+resolves inside the Astro/Vite build — see §6.2). Builds on §6.2's fixture and
+teardown rules.
+
+- **Location**: `tests/integration/api/*.test.ts`. The HTTP cookie-jar helper is
+  `tests/helpers/http.ts`; DB fixture/teardown + side-effect checks reuse
+  `serviceClient()` from `tests/helpers/supabase.ts`. References:
+  `tests/integration/api/authz.test.ts` (authz/IDOR),
+  `tests/integration/api/validation.test.ts` (zod + error-mapping).
+- **Harness**: a Vitest `globalSetup` (`tests/setup/server.ts`) runs `astro build`
+  once, spawns `astro preview` on a known port, and polls a real route until ready
+  before any test runs (workerd accepts the socket before routes compile, so a TCP
+  probe is not enough; `build` must precede `preview` or stale routes are served).
+  `hookTimeout`/`testTimeout` are raised to absorb first-request compile. The
+  server is torn down in the returned teardown even if a test throws. `npm test`
+  is self-contained — no manual server start.
+- **Act as a real user over HTTP**: `signInOverHttp(email, password) → Jar` POSTs
+  form-encoded credentials to `/api/auth/signin` with `Origin` set and redirects
+  **not** followed, asserts `302 → /` (a `302 → /auth/signin?error=…` means bad
+  credentials → throws loudly, never proceeds with an anonymous jar), and captures
+  **every** `Set-Cookie` (Supabase-SSR may chunk a session across
+  `sb-…-auth-token.0/.1`). The jar replays the `Cookie` header on every request:
+  `jar.fetch(path, init)`, `jar.json(path, init) → {status, body}`,
+  `jar.postJson(path, data)`. One independent jar per user, so two users run in one
+  test. `anonymousJar()` is the no-cookie negative control.
+- **Authz pattern (Risk #2)**: for a mutate-by-id route, RLS filters a non-owner's
+  target row to null → the route returns **404, not 403**. So a deny test must run
+  against a **real fixture row** owned by someone else (build it in `beforeAll` via
+  `create_meeting_with_invitations` or `serviceClient()` inserts; capture the ids;
+  tear down in `afterAll`) — never a random UUID. Every deny case needs a **paired
+  owner-success control** on the same route (a non-owner 404 and a no-session 404
+  are indistinguishable — the HTTP silent-pass guard). Cover the unauth case too:
+  one no-cookie call per method → **401**. The create-route connection precondition
+  is its own arm: inviting a non-connected (or pending-FC, not accepted) parent →
+  **403**; inviting a connected friend → **201**.
+- **Assertion convention**: assert **HTTP status + DB side-effect** (the side-effect
+  read via `serviceClient()`: status flipped, `responded_at` stamped, row gone).
+  Assert error **bodies only where load-bearing** — do not pin per-route divergent
+  zod strings (`zod message` vs hardcoded `"invalid id"`). The one body that is
+  contract is `meetings/index.ts`'s mapped error strings (see below) and
+  `friends/search`'s `{found}` shape.
+- **errcode over message-string oracle (Risk #4, the F1 guard)**: only
+  `meetings/index.ts` maps RPC failures by **message string** before its SQLSTATE
+  fallback — that string is fragile (a renamed `raise` text silently breaks the
+  branch). Pin it on **both** paths: assert the mapped status/body on the
+  message-string path (e.g. non-connected invitee → 403), and confirm the SQLSTATE
+  fallback still yields the right status if the message text changes. For every
+  mapped failure, assert the body is the **safe mapped string** — no SQLSTATE code,
+  no `relation`/`constraint` text, no raw Postgres message (the anti-leak
+  assertion). The errcode → HTTP-status table is the durable spec (see research.md
+  §"DB-side test oracle"): `42501`→403, `22023`→400, `23514`→400, `23505`→422/409.
 
 ### 6.5 Adding a test for a new RLS policy or SECURITY DEFINER helper
 
@@ -217,6 +269,26 @@ policy or definer under test:
   PostgREST rejects it (`PGRST303 "JWT issued at future"`). It is environmental,
   not a test bug — resync with `docker run --rm --privileged alpine hwclock -s`
   and re-run.
+- **Phase 2 (testing-api-authz-validation).** Three things this phase taught:
+  (1) **Cookie replay needs `maxRedirects:0`.** The signin route answers `302`
+  with the `Set-Cookie`; following the redirect to `/` drops the header context,
+  so the helper POSTs with redirects disabled and captures every `set-cookie`
+  (Supabase-SSR chunks large sessions across `sb-…-auth-token.0/.1`). (2) **The
+  HTTP silent-pass trap.** A non-owner 404 and a no-session 404 are
+  indistinguishable, so every authz test asserts `302 → /` at signin AND pairs a
+  deny case with an authenticated owner-success control — an anonymous jar that
+  silently 404s everywhere would otherwise "pass". (3) **Build before serve.**
+  `astro preview` serves the last `astro build`; globalSetup must build first and
+  poll a real route (not just TCP) for readiness, or it serves stale/uncompiled
+  routes.
+- **Known latent leak: unmapped `23503` → raw-500 in `POST /api/meetings`.**
+  `meetings/index.ts` maps `23505`/`23514`/`42501`/`22023` but not `23503` (FK
+  violation), so a parent deleted mid-transaction would fall through to the raw-500
+  branch and leak a Postgres message. The sibling `friends/request.ts` _does_ map
+  `23503`→404. Documented, **not fixed** here (the parent-deleted-mid-tx race is
+  impractical to trigger deterministically; a fix is its own change). The
+  generalizable rule — map every errcode an RPC can raise or it falls through to a
+  raw-500 leak — is captured in `context/foundation/lessons.md`.
 
 ## 7. What We Deliberately Don't Test
 

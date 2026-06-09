@@ -339,26 +339,26 @@ Capture the reusable recipe and finalize the phase's documentation so the next c
 
 #### Automated
 
-- [x] 3.1 Type checking passes: `npm run typecheck`
-- [x] 3.2 Linting passes on `validation.test.ts`
-- [x] 3.3 `npm test` runs the validation suite green
-- [x] 3.4 meetings error-mapper test asserts the message-path body AND no raw DB text in any mapped error
-- [x] 3.5 No test pins a per-route divergent zod error string (convention self-check)
+- [x] 3.1 Type checking passes: `npm run typecheck` — db4c030
+- [x] 3.2 Linting passes on `validation.test.ts` — db4c030
+- [x] 3.3 `npm test` runs the validation suite green — db4c030
+- [x] 3.4 meetings error-mapper test asserts the message-path body AND no raw DB text in any mapped error — db4c030
+- [x] 3.5 No test pins a per-route divergent zod error string (convention self-check) — db4c030
 
 #### Manual
 
-- [x] 3.6 Rewording one RPC `raise` message keeps the F1-guard test green via SQLSTATE fallback (then reverted)
-- [x] 3.7 Mapped-error bodies contain no SQLSTATE / constraint / relation text
+- [x] 3.6 Rewording one RPC `raise` message keeps the F1-guard test green via SQLSTATE fallback (then reverted) — db4c030
+- [x] 3.7 Mapped-error bodies contain no SQLSTATE / constraint / relation text — db4c030
 
 ### Phase 4: Cookbook + close-out
 
 #### Automated
 
-- [ ] 4.1 `test-plan.md §6.4` no longer contains "TBD — see §3 Phase 2"
-- [ ] 4.2 `test-plan.md §3` Phase 2 status cell reads `complete`
-- [ ] 4.3 Prettier clean on touched docs (`context/foundation/test-plan.md`)
+- [x] 4.1 `test-plan.md §6.4` no longer contains "TBD — see §3 Phase 2"
+- [x] 4.2 `test-plan.md §3` Phase 2 status cell reads `complete`
+- [x] 4.3 Prettier clean on touched docs (`context/foundation/test-plan.md`)
 
 #### Manual
 
-- [ ] 4.4 A reader could add a new API-endpoint test from §6.4 alone
-- [ ] 4.5 The `23503` latent-leak finding is recorded where a maintainer will see it
+- [x] 4.4 A reader could add a new API-endpoint test from §6.4 alone
+- [x] 4.5 The `23503` latent-leak finding is recorded where a maintainer will see it
