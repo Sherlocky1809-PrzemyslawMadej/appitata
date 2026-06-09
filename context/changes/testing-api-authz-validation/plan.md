@@ -354,11 +354,11 @@ Capture the reusable recipe and finalize the phase's documentation so the next c
 
 #### Automated
 
-- [x] 4.1 `test-plan.md §6.4` no longer contains "TBD — see §3 Phase 2"
-- [x] 4.2 `test-plan.md §3` Phase 2 status cell reads `complete`
-- [x] 4.3 Prettier clean on touched docs (`context/foundation/test-plan.md`)
+- [x] 4.1 `test-plan.md §6.4` no longer contains "TBD — see §3 Phase 2" — 438c70c
+- [x] 4.2 `test-plan.md §3` Phase 2 status cell reads `complete` — 438c70c
+- [x] 4.3 Prettier clean on touched docs (`context/foundation/test-plan.md`) — 438c70c
 
 #### Manual
 
-- [x] 4.4 A reader could add a new API-endpoint test from §6.4 alone
-- [x] 4.5 The `23503` latent-leak finding is recorded where a maintainer will see it
+- [x] 4.4 A reader could add a new API-endpoint test from §6.4 alone — 438c70c
+- [x] 4.5 The `23503` latent-leak finding is recorded where a maintainer will see it — 438c70c
