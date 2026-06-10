@@ -186,26 +186,26 @@ No schema or data migration. The only production-code change is the behaviour-pr
 
 #### Automated
 
-- [x] 1.1 Type checking passes: `npm run build`
-- [x] 1.2 Lint passes on touched files: `npx eslint src/lib/conflicts.ts src/pages/meetings.astro tests/unit/conflicts.test.ts`
-- [x] 1.3 Unit project runs without the server and passes: `npx vitest run --project unit`
-- [x] 1.4 Full suite passes: `npm test`
-- [x] 1.7 Conflict render-wiring integration test passes: `npx vitest run --project integration tests/integration/conflict-render.test.ts`
+- [x] 1.1 Type checking passes: `npm run build` — 35a8ed2
+- [x] 1.2 Lint passes on touched files: `npx eslint src/lib/conflicts.ts src/pages/meetings.astro tests/unit/conflicts.test.ts` — 35a8ed2
+- [x] 1.3 Unit project runs without the server and passes: `npx vitest run --project unit` — 35a8ed2
+- [x] 1.4 Full suite passes: `npm test` — 35a8ed2
+- [x] 1.7 Conflict render-wiring integration test passes: `npx vitest run --project integration tests/integration/conflict-render.test.ts` — 35a8ed2
 
 #### Manual
 
-- [x] 1.5 `/meetings` renders all three sections + conflict warning identically to pre-refactor
-- [x] 1.6 `unit` project completes sub-second with no astro build/preview
+- [x] 1.5 `/meetings` renders all three sections + conflict warning identically to pre-refactor — 35a8ed2
+- [x] 1.6 `unit` project completes sub-second with no astro build/preview — 35a8ed2
 
 ### Phase 2: Invitation expiry (Risk #5) — oracle doc + integration tests
 
 #### Automated
 
-- [ ] 2.1 Lint passes on touched files: `npx eslint tests/integration/invitation-expiry.test.ts`
-- [ ] 2.2 Expiry integration tests pass: `npx vitest run --project integration tests/integration/invitation-expiry.test.ts`
-- [ ] 2.3 Full suite passes: `npm test`
+- [x] 2.1 Lint passes on touched files: `npx eslint tests/integration/invitation-expiry.test.ts`
+- [x] 2.2 Expiry integration tests pass: `npx vitest run --project integration tests/integration/invitation-expiry.test.ts`
+- [x] 2.3 Full suite passes: `npm test`
 
 #### Manual
 
-- [ ] 2.4 Expiry suite fails loudly on a misconfigured DB; fresh-invite control returns 200 with side-effect
-- [ ] 2.5 `invitation-expiry.md` blocks match the test assertions (spec, not SQL copy)
+- [x] 2.4 Expiry suite fails loudly on a misconfigured DB; fresh-invite control returns 200 with side-effect
+- [x] 2.5 `invitation-expiry.md` blocks match the test assertions (spec, not SQL copy)
