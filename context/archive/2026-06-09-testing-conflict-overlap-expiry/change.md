@@ -1,10 +1,10 @@
 ---
 change_id: testing-conflict-overlap-expiry
 title: Testing conflict overlap expiry
-status: impl_reviewed
+status: archived
 created: 2026-06-09
 updated: 2026-06-10
-archived_at: null
+archived_at: 2026-06-10T10:17:01Z
 ---
 
 ## Notes
