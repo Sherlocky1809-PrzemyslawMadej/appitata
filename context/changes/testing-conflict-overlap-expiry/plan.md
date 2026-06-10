@@ -201,11 +201,11 @@ No schema or data migration. The only production-code change is the behaviour-pr
 
 #### Automated
 
-- [x] 2.1 Lint passes on touched files: `npx eslint tests/integration/invitation-expiry.test.ts`
-- [x] 2.2 Expiry integration tests pass: `npx vitest run --project integration tests/integration/invitation-expiry.test.ts`
-- [x] 2.3 Full suite passes: `npm test`
+- [x] 2.1 Lint passes on touched files: `npx eslint tests/integration/invitation-expiry.test.ts` — 2d73c2d
+- [x] 2.2 Expiry integration tests pass: `npx vitest run --project integration tests/integration/invitation-expiry.test.ts` — 2d73c2d
+- [x] 2.3 Full suite passes: `npm test` — 2d73c2d
 
 #### Manual
 
-- [x] 2.4 Expiry suite fails loudly on a misconfigured DB; fresh-invite control returns 200 with side-effect
-- [x] 2.5 `invitation-expiry.md` blocks match the test assertions (spec, not SQL copy)
+- [x] 2.4 Expiry suite fails loudly on a misconfigured DB; fresh-invite control returns 200 with side-effect — 2d73c2d
+- [x] 2.5 `invitation-expiry.md` blocks match the test assertions (spec, not SQL copy) — 2d73c2d
