@@ -10,9 +10,11 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
+    "typecheck": "astro check",
     "db:reset": "npx supabase db reset",
     "db:types": "npx supabase gen types typescript --local > src/db/database.types.ts",
     "test": "vitest run",
+    "test:unit": "vitest run --project unit",
     "test:watch": "vitest"
   },
   "dependencies": {
