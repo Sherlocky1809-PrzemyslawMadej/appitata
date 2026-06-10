@@ -26,7 +26,8 @@ seed); the resulting `pending` invitation is then aged by a `serviceClient().upd
 different points relative to the 24h cutoff:
 
 - **stale** — `now() - 25h` (clearly past the cutoff)
-- **boundary** — `now() - 24h` (at the cutoff; by the time any later statement runs it has crossed it)
+- **boundary** — `now() - 24h - 1m` (just past the cutoff; aged a minute beyond the edge so the fail-closed
+  →404 assertion never depends on sub-second elapsed-time or client-vs-DB clock skew)
 - **under** — `now() - 23h` (clearly inside the window)
 - **fresh** — default `now()` (just created)
 

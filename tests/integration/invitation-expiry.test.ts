@@ -103,7 +103,12 @@ beforeAll(async () => {
   bob = await signInOverHttp(BOB.email, PW);
 
   staleInvitationId = await createAgedInvitation("stale (now-25h)", 25 * HOUR_MS);
-  boundaryInvitationId = await createAgedInvitation("boundary (now-24h)", 24 * HOUR_MS);
+  // Aged just *past* the 24h edge (not exactly on it) so the fail-closed →404
+  // assertion never depends on sub-second elapsed-time / client-vs-DB clock skew.
+  // The exact-instant "neither swept nor acceptable" limbo is a frozen-clock
+  // (single-transaction) semantic documented in invitation-expiry.md block 6, not
+  // a cross-transaction property — see that doc for why it can't be asserted live.
+  boundaryInvitationId = await createAgedInvitation("boundary (now-24h-1m)", 24 * HOUR_MS + 60_000);
   underInvitationId = await createAgedInvitation("under (now-23h)", 23 * HOUR_MS);
   freshInvitationId = await createAgedInvitation("fresh (now)", null);
 });
@@ -197,6 +202,11 @@ describe("sweep RPC expire_stale_invitations (oracle blocks 1-4)", () => {
     const svc = serviceClient();
     const { data: count, error } = await svc.rpc("expire_stale_invitations");
     expect(error, error?.message).toBeNull();
+    // `=== 0` is a WHOLE-DB invariant, not a row-scoped one: it holds only because no
+    // pending invite ANYWHERE is >24h old at this point. Safe today (fileParallelism:false
+    // serializes files + each file cleans up its own rows + the seed has no stale rows). A
+    // future author who backdates a pending invite elsewhere or weakens serialization could
+    // perturb it — keep files serial, or scope this to the fixture ids if that changes.
     expect(count, "no pending rows remain older than 24h, so the second sweep expires nothing").toBe(0);
 
     const stale = await svc.from("meeting_invitations").select("status").eq("id", staleInvitationId).single();
