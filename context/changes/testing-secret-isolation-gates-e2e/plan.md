@@ -326,10 +326,10 @@ Update `context/foundation/test-plan.md` so §4/§5/§6 describe where gates act
 
 #### Automated
 
-- [x] 2.1 `npm run test:unit` exits 0 locally
-- [x] 2.2 `npm run typecheck` exits 0
-- [x] 2.3 CI workflow YAML valid (pushed run or validator)
-- [x] 2.4 Simulated pre-push runs both commands (`sh .husky/pre-push`)
+- [x] 2.1 `npm run test:unit` exits 0 locally — 4000504
+- [x] 2.2 `npm run typecheck` exits 0 — 4000504
+- [x] 2.3 CI workflow YAML valid (pushed run or validator) — 4000504
+- [x] 2.4 Simulated pre-push runs both commands (`sh .husky/pre-push`) — 4000504
 
 #### Manual
 
