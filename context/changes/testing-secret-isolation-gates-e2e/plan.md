@@ -333,9 +333,9 @@ Update `context/foundation/test-plan.md` so §4/§5/§6 describe where gates act
 
 #### Manual
 
-- [ ] 2.5 Branch push triggers CI; unit step green in Actions tab
-- [ ] 2.6 `git push` blocked on a failing secret test, unblocked when reverted
-- [ ] 2.7 CI logs contain no secret values
+- [x] 2.5 Branch push triggers CI; unit step green in Actions tab — b8c1bd7
+- [x] 2.6 `git push` blocked on a failing secret test, unblocked when reverted — ec01fc6
+- [x] 2.7 CI logs contain no secret values — b8c1bd7
 
 ### Phase 3: North-Star E2E (Playwright)
 
