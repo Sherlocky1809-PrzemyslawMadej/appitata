@@ -312,24 +312,24 @@ Update `context/foundation/test-plan.md` so §4/§5/§6 describe where gates act
 
 #### Automated
 
-- [x] 1.1 Secret-isolation test passes today (`npm run test:unit`)
-- [x] 1.2 Test fails on an introduced violation, then reverted
-- [x] 1.3 Full unit suite green (`npx vitest run --project unit`)
-- [x] 1.4 Typecheck passes (`npm run typecheck`)
-- [x] 1.5 Touched files lint clean (`npx eslint tests/unit/secret-isolation.test.ts`)
+- [x] 1.1 Secret-isolation test passes today (`npm run test:unit`) — 88760a6
+- [x] 1.2 Test fails on an introduced violation, then reverted — 88760a6
+- [x] 1.3 Full unit suite green (`npx vitest run --project unit`) — 88760a6
+- [x] 1.4 Typecheck passes (`npm run typecheck`) — 88760a6
+- [x] 1.5 Touched files lint clean (`npx eslint tests/unit/secret-isolation.test.ts`) — 88760a6
 
 #### Manual
 
-- [x] 1.6 Failure message names which vector broke (import vs schema) + offending file
+- [x] 1.6 Failure message names which vector broke (import vs schema) + offending file — 88760a6
 
 ### Phase 2: CI + Pre-Push Gate Wiring
 
 #### Automated
 
-- [ ] 2.1 `npm run test:unit` exits 0 locally
-- [ ] 2.2 `npm run typecheck` exits 0
-- [ ] 2.3 CI workflow YAML valid (pushed run or validator)
-- [ ] 2.4 Simulated pre-push runs both commands (`sh .husky/pre-push`)
+- [x] 2.1 `npm run test:unit` exits 0 locally
+- [x] 2.2 `npm run typecheck` exits 0
+- [x] 2.3 CI workflow YAML valid (pushed run or validator)
+- [x] 2.4 Simulated pre-push runs both commands (`sh .husky/pre-push`)
 
 #### Manual
 
