@@ -31,7 +31,7 @@ export default function FriendSearch() {
         setError(body.error ?? "Search failed");
         return;
       }
-      const body = (await res.json()) as SearchResult;
+      const body: SearchResult = await res.json();
       setResult(body);
     } catch {
       setError("Network error");
