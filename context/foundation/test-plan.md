@@ -340,14 +340,19 @@ policy or definer under test:
   surface), and workerd reads `.dev.vars` incl. `SUPABASE_SERVICE_ROLE_KEY` — on a
   startup error that console output could contain bound secrets, so never paste a
   raw `npm test` log into a shared issue / CI artifact without scrubbing.
-- **Known latent leak: unmapped `23503` → raw-500 in `POST /api/meetings`.**
-  `meetings/index.ts` maps `23505`/`23514`/`42501`/`22023` but not `23503` (FK
-  violation), so a parent deleted mid-transaction would fall through to the raw-500
-  branch and leak a Postgres message. The sibling `friends/request.ts` _does_ map
-  `23503`→404. Documented, **not fixed** here (the parent-deleted-mid-tx race is
-  impractical to trigger deterministically; a fix is its own change). The
-  generalizable rule — map every errcode an RPC can raise or it falls through to a
-  raw-500 leak — is captured in `context/foundation/lessons.md`.
+- **~~Known latent leak: unmapped `23503` → raw-500 in `POST /api/meetings`.~~ FIXED**
+  (`meetings-23503-fk-error-leak`, 2026-06-15). `meetings/index.ts` previously mapped
+  `23505`/`23514`/`42501`/`22023` but not `23503` (FK violation), so a parent deleted
+  mid-transaction fell through to the raw-500 branch and leaked a Postgres message.
+  The error ladder is now an extracted pure mapper `src/lib/meetings-errors.ts`
+  (`mapCreateMeetingError`): `23503`→404 (matching `friends/request.ts`) **and** the
+  generic fallthrough returns a safe `500 "unexpected error"` while logging the raw
+  error server-side — closing the whole leak class, not just this code. The real
+  mid-tx race is impractical to trigger deterministically (m3l5 debugging-as-test),
+  so the regression lock is a deterministic **unit** test on the extracted mapper
+  (`tests/unit/meetings-errors.test.ts`), not an integration repro. The generalizable
+  rule — map every errcode an RPC can raise or it falls through to a raw-500 leak — is
+  captured in `context/foundation/lessons.md`.
 - **Phase 4 (testing-secret-isolation-gates-e2e).** Three things this phase
   settled: (1) **The secret check is a regression-lock, not a fix** — Risk #6
   isolation already held, so `tests/unit/secret-isolation.test.ts` pins **both**
