@@ -341,17 +341,17 @@ Update `context/foundation/test-plan.md` so §4/§5/§6 describe where gates act
 
 #### Automated
 
-- [ ] 3.1 Browser installed (`npx playwright install chromium`)
-- [ ] 3.2 E2e passes with local Supabase up (`npm run test:e2e`)
-- [ ] 3.3 Conflict-warning assertion is load-bearing (non-overlapping → test fails, then reverted)
-- [ ] 3.4 Touched files lint clean
-- [ ] 3.5 Typecheck passes
+- [x] 3.1 Browser installed (`npx playwright install chromium`)
+- [x] 3.2 E2e passes with local Supabase up (`npm run test:e2e`)
+- [x] 3.3 Conflict-warning assertion is load-bearing (non-overlapping → test fails, then reverted)
+- [x] 3.4 Touched files lint clean
+- [x] 3.5 Typecheck passes
 
 #### Manual
 
-- [ ] 3.6 Trace/screenshot on failure shows the rendered warning
-- [ ] 3.7 Deterministic across 3 consecutive runs
-- [ ] 3.8 No secret values in Playwright output/report
+- [x] 3.6 Trace/screenshot on failure shows the rendered warning
+- [x] 3.7 Deterministic across 3 consecutive runs
+- [x] 3.8 No secret values in Playwright output/report
 
 ### Phase 4: Test-Plan Doc Reconciliation
 

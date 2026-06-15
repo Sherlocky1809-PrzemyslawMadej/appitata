@@ -15,6 +15,7 @@
     "db:types": "npx supabase gen types typescript --local > src/db/database.types.ts",
     "test": "vitest run",
     "test:unit": "vitest run --project unit",
+    "test:e2e": "playwright test",
     "test:watch": "vitest"
   },
   "dependencies": {
@@ -43,6 +44,7 @@
   "devDependencies": {
     "@eslint/compat": "^2.0.3",
     "@eslint/js": "^9.29.0",
+    "@playwright/test": "^1.60.0",
     "eslint": "^9.29.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-astro": "^1.7.0",
