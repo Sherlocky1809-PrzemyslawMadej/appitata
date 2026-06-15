@@ -341,26 +341,26 @@ Update `context/foundation/test-plan.md` so §4/§5/§6 describe where gates act
 
 #### Automated
 
-- [x] 3.1 Browser installed (`npx playwright install chromium`)
-- [x] 3.2 E2e passes with local Supabase up (`npm run test:e2e`)
-- [x] 3.3 Conflict-warning assertion is load-bearing (non-overlapping → test fails, then reverted)
-- [x] 3.4 Touched files lint clean
-- [x] 3.5 Typecheck passes
+- [x] 3.1 Browser installed (`npx playwright install chromium`) — a6d2876
+- [x] 3.2 E2e passes with local Supabase up (`npm run test:e2e`) — a6d2876
+- [x] 3.3 Conflict-warning assertion is load-bearing (non-overlapping → test fails, then reverted) — a6d2876
+- [x] 3.4 Touched files lint clean — a6d2876
+- [x] 3.5 Typecheck passes — a6d2876
 
 #### Manual
 
-- [x] 3.6 Trace/screenshot on failure shows the rendered warning
-- [x] 3.7 Deterministic across 3 consecutive runs
-- [x] 3.8 No secret values in Playwright output/report
+- [x] 3.6 Trace/screenshot on failure shows the rendered warning — a6d2876
+- [x] 3.7 Deterministic across 3 consecutive runs — a6d2876
+- [x] 3.8 No secret values in Playwright output/report — a6d2876
 
 ### Phase 4: Test-Plan Doc Reconciliation
 
 #### Automated
 
-- [ ] 4.1 Markdown parses / no broken table syntax
-- [ ] 4.2 No remaining "TBD — see Phase 4" stub in §6.3
+- [x] 4.1 Markdown parses / no broken table syntax
+- [x] 4.2 No remaining "TBD — see Phase 4" stub in §6.3
 
 #### Manual
 
-- [ ] 4.3 §5 gate locations match implemented CI + pre-push wiring
-- [ ] 4.4 §6.3 reads as a usable how-to
+- [x] 4.3 §5 gate locations match implemented CI + pre-push wiring
+- [x] 4.4 §6.3 reads as a usable how-to

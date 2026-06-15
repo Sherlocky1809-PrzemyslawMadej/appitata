@@ -6,7 +6,7 @@
 >
 > Refresh: re-run `/10x-test-plan --refresh` when stale (see §8).
 >
-> Last updated: 2026-06-09 (Phase 2 complete)
+> Last updated: 2026-06-15 (Phase 4 complete — rollout finished)
 
 ## 1. Strategy
 
@@ -67,12 +67,12 @@ Each row is a discrete rollout phase that will open its own change folder
 via `/10x-new`. Status moves left-to-right through the values below; the
 orchestrator updates Status as artifacts appear on disk.
 
-| #   | Phase name                                               | Goal (one line)                                                                                            | Risks covered      | Test types                 | Status      | Change folder                                  |
-| --- | -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ------------------ | -------------------------- | ----------- | ---------------------------------------------- |
-| 1   | Test-runner bootstrap + privacy-boundary RLS isolation   | Stand up the runner on the highest risk and prove cross-circle reads return nothing                        | #1, #2 (read path) | integration                | complete    | context/changes/testing-privacy-rls-isolation/ |
-| 2   | API authorization + input-validation contract            | Prove endpoints reject non-owners, non-connected invites, and malformed payloads with the correct status   | #2, #4             | integration                | complete    | context/changes/testing-api-authz-validation/  |
-| 3   | Conflict-overlap & 24h expiry logic                      | Prove a clash surfaces before confirm and a stale invitation expires                                       | #3, #5             | unit + integration         | not started | —                                              |
-| 4   | Secret isolation + quality-gates wiring + north-star e2e | Lock the floor: key-isolation check, CI gates, one e2e of the full co-care flow incl. the conflict warning | #6, cross-cutting  | static check + gates + e2e | not started | —                                              |
+| #   | Phase name                                               | Goal (one line)                                                                                            | Risks covered      | Test types                 | Status        | Change folder                                               |
+| --- | -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ------------------ | -------------------------- | ------------- | ----------------------------------------------------------- |
+| 1   | Test-runner bootstrap + privacy-boundary RLS isolation   | Stand up the runner on the highest risk and prove cross-circle reads return nothing                        | #1, #2 (read path) | integration                | complete      | context/changes/testing-privacy-rls-isolation/              |
+| 2   | API authorization + input-validation contract            | Prove endpoints reject non-owners, non-connected invites, and malformed payloads with the correct status   | #2, #4             | integration                | complete      | context/changes/testing-api-authz-validation/               |
+| 3   | Conflict-overlap & 24h expiry logic                      | Prove a clash surfaces before confirm and a stale invitation expires                                       | #3, #5             | unit + integration         | complete      | context/archive/2026-06-09-testing-conflict-overlap-expiry/ |
+| 4   | Secret isolation + quality-gates wiring + north-star e2e | Lock the floor: key-isolation check, CI gates, one e2e of the full co-care flow incl. the conflict warning | #6, cross-cutting  | static check + gates + e2e | change opened | context/changes/testing-secret-isolation-gates-e2e/         |
 
 **Status vocabulary** (fixed — parser literals): `not started` → `change opened` → `researched` → `planned` → `implementing` → `complete`.
 
@@ -83,13 +83,13 @@ AI-native note: Phase 4 includes one deterministic **Playwright e2e** of the nor
 The classic test base for this project. AI-native tools (if any) carry a
 `checked:` date so future readers can see which lines need re-verification.
 
-| Layer                         | Tool                                                                | Version  | Notes                                                                                                        |
-| ----------------------------- | ------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------ |
-| unit + integration            | none yet — see §3 Phase 1 (Vitest is the Astro-native default)      | n/a      | No test runner, config, or test deps exist today; Phase 1 bootstraps it                                      |
-| DB integration harness        | local Supabase via `npx supabase start` + `npm run db:reset`        | existing | Already used for manual RLS proofs (`supabase/tests/*.md`); Phase 1 automates these                          |
-| API mocking                   | edge-only (mock the external HTTP boundary, never internal modules) | n/a      | Prefer real local Supabase over mocking the DB client                                                        |
-| e2e                           | none yet — see §3 Phase 4 (Playwright)                              | n/a      | Playwright already used ad-hoc for manual verification (`.verify-evidence/`); Phase 4 makes one flow durable |
-| static secret-isolation check | none yet — see §3 Phase 4 (ESLint import rule / grep gate)          | n/a      | Asserts the admin client never reaches a client/request path                                                 |
+| Layer                         | Tool                                                                | Version  | Notes                                                                                                                                                                                                                                |
+| ----------------------------- | ------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| unit + integration            | none yet — see §3 Phase 1 (Vitest is the Astro-native default)      | n/a      | No test runner, config, or test deps exist today; Phase 1 bootstraps it                                                                                                                                                              |
+| DB integration harness        | local Supabase via `npx supabase start` + `npm run db:reset`        | existing | Already used for manual RLS proofs (`supabase/tests/*.md`); Phase 1 automates these                                                                                                                                                  |
+| API mocking                   | edge-only (mock the external HTTP boundary, never internal modules) | n/a      | Prefer real local Supabase over mocking the DB client                                                                                                                                                                                |
+| e2e                           | Playwright (`@playwright/test`)                                     | ^1.60.0  | Standalone config (`playwright.config.ts`), own `webServer` (build+preview) + storageState `setup` project; north-star co-care flow only; canonical model `tests/e2e/seed.spec.ts` (+ `tests/e2e/E2E-RULES.md`); checked: 2026-06-15 |
+| static secret-isolation check | Vitest unit test (`tests/unit/secret-isolation.test.ts`)            | existing | Both vectors (import-graph + env-schema), no deps — pure static file inspection; runs in the `unit` Vitest project; checked: 2026-06-15                                                                                              |
 
 If a row reads "none yet — see Phase N", that gap is addressed by the named rollout phase.
 
@@ -106,14 +106,14 @@ The full set of gates that must pass before a change reaches production.
 "Required after §3 Phase N" means the gate is enforced once that rollout
 phase lands; before that, the gate is `planned`.
 
-| Gate                             | Where                | Required?                                              | Catches                                                |
-| -------------------------------- | -------------------- | ------------------------------------------------------ | ------------------------------------------------------ |
-| lint + typecheck                 | local + CI           | required (already wired in `.github/workflows/ci.yml`) | syntactic / type drift                                 |
-| unit + integration               | local + CI           | required after §3 Phase 1                              | RLS / logic regressions                                |
-| e2e on the co-care critical flow | CI on PR             | required after §3 Phase 4                              | broken north-star user path / missing conflict warning |
-| static secret-isolation check    | local + CI           | required after §3 Phase 4                              | service-role key reaching a client/request path        |
-| post-edit hook                   | local (agent loop)   | optional (Module 3 Lesson 3)                           | regressions at edit time                               |
-| pre-prod smoke                   | between merge + prod | optional                                               | environment-specific failures (cron, Worker secrets)   |
+| Gate                             | Where                                            | Required?                                              | Catches                                                |
+| -------------------------------- | ------------------------------------------------ | ------------------------------------------------------ | ------------------------------------------------------ |
+| lint + typecheck                 | local + CI                                       | required (already wired in `.github/workflows/ci.yml`) | syntactic / type drift                                 |
+| unit + integration               | unit: local + CI; integration: local (pre-merge) | required after §3 Phase 1                              | RLS / logic regressions                                |
+| e2e on the co-care critical flow | local (pre-merge)                                | required after §3 Phase 4                              | broken north-star user path / missing conflict warning |
+| static secret-isolation check    | local (pre-push) + CI                            | required after §3 Phase 4                              | service-role key reaching a client/request path        |
+| post-edit hook                   | local (agent loop)                               | optional (Module 3 Lesson 3)                           | regressions at edit time                               |
+| pre-prod smoke                   | between merge + prod                             | optional                                               | environment-specific failures (cron, Worker secrets)   |
 
 Every row corresponds to a gate that either is wired or will be wired by a named rollout phase.
 
@@ -166,7 +166,63 @@ mocked client (a mock proves nothing about a policy).
 
 ### 6.3 Adding an e2e test
 
-- TBD — see §3 Phase 4 (Playwright over the north-star co-care flow, asserting the conflict warning renders).
+E2e is the **most expensive** layer — reserve it for a rendered-UI risk no
+cheaper layer can see (here: the conflict warning renders in `.astro`
+frontmatter, invisible to integration). One durable spec covers the north-star
+co-care flow; do not e2e every page (§3 AI-native note).
+
+- **Location & model**: `tests/e2e/*.spec.ts`, standalone `playwright.config.ts`
+  with its own `webServer`. Run with `npm run test:e2e`. The **canonical model**
+  to copy is `tests/e2e/seed.spec.ts` (a complete, runnable test of Risk #3, not a
+  sketch); the seven durable rules it embodies live in `tests/e2e/E2E-RULES.md`.
+  New specs reproduce what the seed shows.
+- **Prerequisites**: `npx playwright install chromium` once per machine/CI (the
+  browser binary is **not** installed automatically — `npm run test:e2e` fails
+  with a missing-executable error until you do). Local Supabase must be up
+  (`npx supabase start`) and seeded (`npm run db:reset`), and `.dev.vars` must
+  hold `SUPABASE_URL` / `SUPABASE_KEY` / `SUPABASE_SERVICE_ROLE_KEY` — the
+  `webServer` (`npm run build && npm run preview`) serves the same **workerd
+  preview** the app uses, which reads `.dev.vars`. The config sets a generous
+  `webServer.timeout` (workerd's first compile is slow); wait on state, never a
+  fixed sleep.
+- **Auth via storageState — never log in through the UI (rule 7)**: a separate
+  `setup` project (`tests/e2e/auth.setup.ts`), wired as a `dependencies` of the
+  chromium project so it runs once first, signs each seeded parent in over **HTTP**
+  (`request.post('/api/auth/signin', { form, headers:{ Origin }, maxRedirects:0 })`,
+  assert `302 → /`; a `302 → /auth/signin?error=` means bad creds → fail loudly so
+  no spec runs anonymous) and persists the cookie jar to `tests/e2e/.auth/<user>.json`.
+  Specs consume it: `test.use({ storageState: BOB_AUTH })` drives the browser as the
+  receiving parent; the creator acts through an `APIRequestContext` built from her
+  own jar (`request.newContext({ storageState: ALICE_AUTH })`).
+- **Fixture setup over the API, not the UI**: create meetings with
+  `POST /api/meetings` (`Origin` header set) through the creator's API context —
+  reserve the browser for the parts that genuinely need it (the hydrated accept
+  click and the rendered-warning assertion). Don't type through the UI for setup.
+- **Locators (rules 1–2)**: `getByRole` / `getByLabel` / `getByText` are primary;
+  `getByTestId` only for a role-less container with no accessible name (the
+  `pending-invitation` `<li>` row). Never CSS / XPath. The accept button is reached
+  by `getByRole("button", { name: /accept/i })`; the conflict warning by
+  `getByText(/overlaps/i)` (its copy is "…this overlaps with:"), not a test-id.
+- **`client:visible` hydration (rule 4)**: the accept button hydrates only when
+  scrolled into view. `scrollIntoViewIfNeeded()` then wait for actionability
+  (`toBeEnabled()`) — never `page.waitForTimeout()`. Accepting fires a POST then
+  reloads, so wrap the click in `page.waitForResponse(...respond...)` and re-query
+  the row after the reload (web-first assertions auto-retry).
+- **Control assertion (silent-pass discipline, §6.4)**: a selector that never
+  matches passes a "warning renders" test vacuously. Pair the positive assertion
+  with a control — assert the warning is **absent** on the second pending row
+  before the first invite is accepted, then **present** once accepting the first
+  puts an overlapping meeting on the schedule. Make overlap deterministic: both
+  meetings share one `starts_at` + default 60-min duration → a guaranteed clash
+  (`overlaps` is half-open `[start,end)`; back-to-back does not overlap).
+- **Unique data + per-test cleanup (rule 6)**: tag fixture rows with a per-run
+  marker (`crypto.randomUUID()`) so re-runs and parallel files can't collide, and
+  delete every meeting the test created in `afterEach` (creator `DELETE
+/api/meetings/<id>` → 204, FK-cascades the invitations). Clean up by tracked id —
+  not a global `public.meetings` wipe.
+- **Seed identities**: Alice (`alice@example.com`) / Bob (`bob@example.com`) are an
+  accepted friend-connection (the pair to use); all seeded users share password
+  **`test1234`**.
 
 ### 6.4 Adding a test for a new API endpoint
 
@@ -292,6 +348,19 @@ policy or definer under test:
   impractical to trigger deterministically; a fix is its own change). The
   generalizable rule — map every errcode an RPC can raise or it falls through to a
   raw-500 leak — is captured in `context/foundation/lessons.md`.
+- **Phase 4 (testing-secret-isolation-gates-e2e).** Three things this phase
+  settled: (1) **The secret check is a regression-lock, not a fix** — Risk #6
+  isolation already held, so `tests/unit/secret-isolation.test.ts` pins **both**
+  vectors (import-graph: only `src/worker.ts` may import `supabase-admin`;
+  env-schema: `SUPABASE_SERVICE_ROLE_KEY` stays out of `astro.config.mjs`). The
+  import scan is allow-list shaped (assert the importer set equals
+  `{ src/worker.ts }`) so a new top-level leak path fails closed. (2) **CI stays
+  deliberately light** — only `vitest run --project unit` runs in CI (no Supabase,
+  no preview server), so the Phase-2 `.dev.vars`-echo-in-logs caution is moot for
+  CI; integration + e2e remain local/pre-merge gates and the secret check also runs
+  on pre-push. (3) **The e2e proves _rendering_, not behavior coverage** — it
+  asserts the conflict warning renders on an overlapping invite (with an absence
+  control); it is not a substitute for the integration conflict-math/authz suites.
 
 ## 7. What We Deliberately Don't Test
 
