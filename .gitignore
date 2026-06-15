@@ -32,3 +32,10 @@ pnpm-debug.log*
 test-results/
 playwright-report/
 tests/e2e/.auth/
+playwright/.auth/
+
+# Local Claude Code overrides (personal, machine-specific)
+.claude/settings.local.json
+
+# Supabase Studio scratch queries
+supabase/snippets/

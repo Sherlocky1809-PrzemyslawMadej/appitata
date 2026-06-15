@@ -10,6 +10,13 @@
             "command": "f=$(node -e 'let d=\"\";process.stdin.on(\"data\",c=>d+=c).on(\"end\",()=>{try{process.stdout.write(String(JSON.parse(d).tool_input.file_path||\"\"))}catch(e){}})'); [ -n \"$f\" ] && npx prettier --write --ignore-unknown \"$f\" >/dev/null 2>&1 || true",
             "timeout": 30,
             "statusMessage": "Formatting with Prettier"
+          },
+          {
+            "type": "command",
+            "shell": "bash",
+            "command": "f=$(node -e 'let d=\"\";process.stdin.on(\"data\",c=>d+=c).on(\"end\",()=>{try{process.stdout.write(String(JSON.parse(d).tool_input.file_path||\"\"))}catch(e){}})'); case \"$f\" in *.ts|*.tsx|*.astro) out=$(npx eslint --fix \"$f\" 2>&1); [ $? -ne 0 ] && { echo \"ESLint could not auto-fix all issues in $f:\" >&2; echo \"$out\" >&2; exit 2; } ;; esac; exit 0",
+            "timeout": 60,
+            "statusMessage": "Linting with ESLint --fix"
           }
         ]
       }
