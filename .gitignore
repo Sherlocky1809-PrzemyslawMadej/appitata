@@ -37,5 +37,13 @@ playwright/.auth/
 # Local Claude Code overrides (personal, machine-specific)
 .claude/settings.local.json
 
+# 10x-cli-installed assets (reinstall via the CLI; not version-pinned here)
+.claude/.10x-cli-manifest.json
+.claude/prompts/
+.claude/skills/
+
+# Verification scratchpad
+.verify-evidence/
+
 # Supabase Studio scratch queries
 supabase/snippets/
