@@ -132,12 +132,12 @@ None — no schema or data changes; API-layer only. The response contract for al
 
 #### Automated
 
-- [x] 1.1 New test fails before the mapper exists (RED proof) — `npm run test:unit`
-- [x] 1.2 Full unit suite passes after GREEN — `npm run test:unit`
-- [x] 1.3 Typecheck passes — `npm run typecheck`
-- [x] 1.4 Touched files lint clean — `npx eslint tests/unit/meetings-errors.test.ts src/lib/meetings-errors.ts src/pages/api/meetings/index.ts`
+- [x] 1.1 New test fails before the mapper exists (RED proof) — `npm run test:unit` — 8ba3970
+- [x] 1.2 Full unit suite passes after GREEN — `npm run test:unit` — 8ba3970
+- [x] 1.3 Typecheck passes — `npm run typecheck` — 8ba3970
+- [x] 1.4 Touched files lint clean — `npx eslint tests/unit/meetings-errors.test.ts src/lib/meetings-errors.ts src/pages/api/meetings/index.ts` — 8ba3970
 
 #### Manual
 
-- [x] 1.5 Integration suite still green with local Supabase up (`npm test`) — validation + authz unchanged
-- [x] 1.6 No constraint/relation/SQLSTATE/raw-message text in any mapped error body (anti-leak)
+- [x] 1.5 Integration suite still green with local Supabase up (`npm test`) — validation + authz unchanged — 8ba3970
+- [x] 1.6 No constraint/relation/SQLSTATE/raw-message text in any mapped error body (anti-leak) — 8ba3970

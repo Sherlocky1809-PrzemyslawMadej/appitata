@@ -1,7 +1,7 @@
 ---
 change_id: meetings-23503-fk-error-leak
 title: Map 23503 FK-violation to a safe 404 in POST /api/meetings (close the raw-500 leak)
-status: implementing
+status: implemented
 created: 2026-06-15
 updated: 2026-06-15
 archived_at: null
