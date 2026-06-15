@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase";
+import { mapCreateMeetingError } from "@/lib/meetings-errors";
 
 const UUID_SHAPE = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
 
@@ -64,27 +65,8 @@ export const POST: APIRoute = async (context) => {
   });
 
   if (error) {
-    // Postgres-native error codes from constraint violations
-    if (error.code === "23505") return json({ error: "duplicate invitee in request" }, 422);
-    if (error.code === "23514") return json({ error: "invalid field shape" }, 400);
-    // RPC-raised exceptions (same SQLSTATE 42501/22023; message disambiguates)
-    if (error.message === "invitee not connected") {
-      return json({ error: "one or more invitees are not connected friends" }, 403);
-    }
-    if (error.message === "authentication required") {
-      // Defense-in-depth: the locals.user guard above should have caught this already.
-      return json({ error: "unauthorized" }, 401);
-    }
-    if (error.message === "at least one invitee required") {
-      return json({ error: "at least one invitee required" }, 400);
-    }
-    if (error.message === "too many invitees (max 50)") {
-      return json({ error: "too many invitees (max 50)" }, 400);
-    }
-    // SQLSTATE fallback: a renamed RAISE message degrades to the right HTTP class, not 500.
-    if (error.code === "42501") return json({ error: "unauthorized" }, 403);
-    if (error.code === "22023") return json({ error: "invalid request" }, 400);
-    return json({ error: error.message }, 500);
+    const { status, body } = mapCreateMeetingError(error);
+    return json(body, status);
   }
 
   return json({ meeting_id: data }, 201);
