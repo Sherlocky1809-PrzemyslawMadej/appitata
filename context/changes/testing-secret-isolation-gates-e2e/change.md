@@ -1,9 +1,9 @@
 ---
 change_id: testing-secret-isolation-gates-e2e
 title: Secret-isolation static check, CI quality-gate wiring, and north-star co-care e2e
-status: implementing
+status: implemented
 created: 2026-06-10
-updated: 2026-06-11
+updated: 2026-06-15
 archived_at: null
 ---
 

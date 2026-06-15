@@ -357,10 +357,10 @@ Update `context/foundation/test-plan.md` so §4/§5/§6 describe where gates act
 
 #### Automated
 
-- [x] 4.1 Markdown parses / no broken table syntax
-- [x] 4.2 No remaining "TBD — see Phase 4" stub in §6.3
+- [x] 4.1 Markdown parses / no broken table syntax — da9dc79
+- [x] 4.2 No remaining "TBD — see Phase 4" stub in §6.3 — da9dc79
 
 #### Manual
 
-- [x] 4.3 §5 gate locations match implemented CI + pre-push wiring
-- [x] 4.4 §6.3 reads as a usable how-to
+- [x] 4.3 §5 gate locations match implemented CI + pre-push wiring — da9dc79
+- [x] 4.4 §6.3 reads as a usable how-to — da9dc79
