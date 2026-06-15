@@ -106,14 +106,14 @@ The full set of gates that must pass before a change reaches production.
 "Required after §3 Phase N" means the gate is enforced once that rollout
 phase lands; before that, the gate is `planned`.
 
-| Gate                             | Where                                            | Required?                                              | Catches                                                |
-| -------------------------------- | ------------------------------------------------ | ------------------------------------------------------ | ------------------------------------------------------ |
-| lint + typecheck                 | local + CI                                       | required (already wired in `.github/workflows/ci.yml`) | syntactic / type drift                                 |
-| unit + integration               | unit: local + CI; integration: local (pre-merge) | required after §3 Phase 1                              | RLS / logic regressions                                |
-| e2e on the co-care critical flow | local (pre-merge)                                | required after §3 Phase 4                              | broken north-star user path / missing conflict warning |
-| static secret-isolation check    | local (pre-push) + CI                            | required after §3 Phase 4                              | service-role key reaching a client/request path        |
-| post-edit hook                   | local (agent loop)                               | optional (Module 3 Lesson 3)                           | regressions at edit time                               |
-| pre-prod smoke                   | between merge + prod                             | optional                                               | environment-specific failures (cron, Worker secrets)   |
+| Gate                             | Where                                                    | Required?                                              | Catches                                                |
+| -------------------------------- | -------------------------------------------------------- | ------------------------------------------------------ | ------------------------------------------------------ |
+| lint + typecheck                 | lint: local + CI; typecheck: local (pre-push) + CI build | required (already wired in `.github/workflows/ci.yml`) | syntactic / type drift                                 |
+| unit + integration               | unit: local + CI; integration: local (pre-merge)         | required after §3 Phase 1                              | RLS / logic regressions                                |
+| e2e on the co-care critical flow | local (pre-merge)                                        | required after §3 Phase 4                              | broken north-star user path / missing conflict warning |
+| static secret-isolation check    | local (pre-push) + CI                                    | required after §3 Phase 4                              | service-role key reaching a client/request path        |
+| post-edit hook                   | local (agent loop)                                       | optional (Module 3 Lesson 3)                           | regressions at edit time                               |
+| pre-prod smoke                   | between merge + prod                                     | optional                                               | environment-specific failures (cron, Worker secrets)   |
 
 Every row corresponds to a gate that either is wired or will be wired by a named rollout phase.
 
