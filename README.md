@@ -137,3 +137,7 @@ GitHub Actions (`.github/workflows/ci.yml`) runs lint + build on every push and 
 ## License
 
 MIT
+
+## Coauthor
+
+https://github.com/przeprogramowani/
